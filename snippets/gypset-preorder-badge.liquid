@@ -1,0 +1,52 @@
+{%- doc -%}
+  Gypset Cargo — PRE-ORDER product badge.
+
+  Horizon only ships "Sale" and "Sold out" badges. The Figma homepage design
+  shows an olive PRE-ORDER chip on some product cards, so this adds one.
+
+  A product shows the badge when it carries the `preorder` tag (or `pre-order`).
+  Add or remove the tag on the product in Shopify admin — no code needed.
+
+  It reuses Horizon's own badge markup and positioning, so it inherits the
+  badge position, corner radius and text transform from Theme settings →
+  Product cards. The olive colour comes from .color-custom-badge-preorder
+  in assets/gypset-brand.css.
+
+  @param {object} product - The product to test and badge.
+
+  @example
+  {% render 'gypset-preorder-badge', product: product %}
+{%- enddoc -%}
+
+{%- liquid
+  assign is_preorder = false
+  if product.tags contains 'preorder'
+    assign is_preorder = true
+  elsif product.tags contains 'pre-order'
+    assign is_preorder = true
+  endif
+
+  # Horizon's own Sale and Sold out badges sit in the same corner, so stand
+  # down if one of those is already showing rather than stacking two chips.
+  if product.available == false
+    assign is_preorder = false
+  elsif product.compare_at_price > product.price
+    assign is_preorder = false
+  endif
+-%}
+
+{%- if is_preorder -%}
+  <div
+    class="product-badges product-badges--{{ settings.badge_position }} gypset-preorder-badges"
+    style="
+      --badge-border-radius: {{ settings.badge_corner_radius }}px;
+      --badge-font-family: var(--font-{{ settings.badge_font_family }}--family);
+      --badge-font-weight: var(--font-{{ settings.badge_font_family }}--weight);
+      --badge-text-transform: {{ settings.badge_text_transform }};
+    "
+  >
+    <div class="product-badges__badge product-badges__badge--rectangle color-custom-badge-preorder">
+      {{ 'content.product_badge_preorder' | t }}
+    </div>
+  </div>
+{%- endif -%}
