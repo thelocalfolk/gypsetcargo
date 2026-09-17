@@ -114,7 +114,7 @@
               <tbody data-stock-rows>
         {%- endif -%}
 
-        {%- for product in paginate.items -%}
+        {%- for product in collections['all'].products -%}
           {%- liquid
             assign freight = product.metafields[freight_ns][freight_key].value
             assign product_title = product.title | escape
