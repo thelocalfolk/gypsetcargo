@@ -31,7 +31,7 @@
         "show_weight": true,
         "col_weight": "Dead Weight (kg)",
         "col_stock": "Stock Count",
-        "show_freight": true,
+        "show_freight": false,
         "col_freight": "Freight",
         "search_placeholder": "Search products",
         "hide_out_of_stock_label": "Hide out of stock",
