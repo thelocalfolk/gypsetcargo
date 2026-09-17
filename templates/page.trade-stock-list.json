@@ -9,55 +9,36 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "main-page",
-      "blocks": {
-        "heading": {
-          "type": "text",
-          "name": "Title",
-          "settings": {
-            "text": "<h1>{{ closest.page.title }}</h1>",
-            "width": "100%",
-            "max_width": "normal",
-            "alignment": "center",
-            "type_preset": "h3",
-            "font": "var(--font-body--family)",
-            "font_size": "1rem",
-            "line_height": "normal",
-            "letter_spacing": "normal",
-            "case": "none",
-            "wrap": "pretty",
-            "color": "var(--color-foreground)",
-            "background": false,
-            "background_color": "#00000026",
-            "corner_radius": 0,
-            "padding-block-start": 0,
-            "padding-block-end": 0,
-            "padding-inline-start": 0,
-            "padding-inline-end": 0
-          },
-          "blocks": {}
-        },
-        "page-content": {
-          "type": "page-content",
-          "settings": {},
-          "blocks": {}
-        }
-      },
-      "block_order": [
-        "heading",
-        "page-content"
-      ],
+    "trade_stock_list": {
+      "type": "trade-stock-list",
       "settings": {
-        "content_direction": "column",
-        "gap": 32,
+        "trade_tag": "RETAILER",
+        "heading": "Stock List",
+        "intro": "<p>Live stock levels across the full range. Click a product to view trade pricing and order.</p>",
+        "gst_note": "+ GST",
+        "price_metafield": "trade.price",
+        "price_fallback": false,
+        "freight_metafield": "trade.freight_tier",
+        "col_product": "Product Name",
+        "col_variant": "Variant / Details",
+        "show_sku": false,
+        "show_price": false,
+        "col_price": "Trade Price",
+        "show_weight": true,
+        "col_weight": "Dead Weight (kg)",
+        "col_stock": "Stock Count",
+        "show_freight": true,
+        "col_freight": "Freight",
+        "show_download": true,
+        "gate_heading": "Stockists only",
+        "gate_text": "<p>This page is for approved Gypset Cargo stockists. Please log in to your trade account to view live stock levels and pricing.</p>",
+        "gate_apply_url": "shopify://pages/trade-application",
         "color_scheme": "scheme-9ea0c092-dab2-4340-b56a-87f7b1824b59",
+        "section_width": "page-width",
         "padding-block-start": 40,
         "padding-block-end": 80
       }
     }
   },
-  "order": [
-    "main"
-  ]
+  "order": ["trade_stock_list"]
 }
