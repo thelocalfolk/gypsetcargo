@@ -9,7 +9,8 @@
 
   Where each column comes from:
     Product / Variant  – native Shopify
-    Trade price        – variant metafield  trade.price  (Decimal or Money type, ex GST)
+    Trade price        – live from Netwise's storefront pricing service (per customer),
+                         or a variant metafield  trade.price  as a fallback
     Dead weight        – native variant weight (stored in grams, shown in kg)
     Stock count        – native variant inventory_quantity (inventory tracking must be on)
     Freight tier       – product metafield  trade.freight_tier  (single line text / choice list)
@@ -38,6 +39,8 @@
   assign freight_key = section.settings.freight_metafield | split: '.' | last
 
   assign login_url = routes.storefront_login_url | default: routes.account_login_url
+  assign price_source = section.settings.price_source | default: 'netwise'
+  assign nw_backend = section.settings.netwise_backend_url | default: 'https://nw-prod-a8e46749d6a0.herokuapp.com' | strip | remove_last: '/'
 -%}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
@@ -47,7 +50,16 @@
   style="{% render 'spacing-padding', settings: section.settings %}"
 >
   {%- if is_trade or request.design_mode -%}
-    <div class="trade-stock-list__inner" data-trade-stock-list>
+    <div
+      class="trade-stock-list__inner"
+      data-trade-stock-list
+      data-price-source="{{ price_source }}"
+      data-nw-backend="{{ nw_backend }}"
+      data-nw-shop="{{ shop.permanent_domain }}"
+      data-nw-customer="{{ customer.id }}"
+      data-ex-gst="{% if section.settings.price_ex_gst %}true{% else %}false{% endif %}"
+      data-currency="{{ cart.currency.iso_code | default: shop.currency }}"
+    >
       {%- paginate collections['all'].products by 50 -%}
       {%- assign current_page = paginate.current_page -%}
 
@@ -143,6 +155,8 @@
             <tr
               data-search="{{ product_title | downcase }} {{ variant_title | downcase | escape }} {{ variant.sku | downcase | escape }}"
               data-qty="{{ qty_sort }}"
+              data-product-id="{{ product.id }}"
+              data-variant-id="{{ variant.id }}"
               {% if variant.inventory_management != blank and qty <= 0 %}class="is-out-of-stock"{% endif %}
             >
               <td data-label="{{ section.settings.col_product | default: 'Product' | escape }}">
@@ -153,7 +167,7 @@
                 <td data-label="{{ section.settings.col_sku | default: 'SKU' | escape }}">{{ variant.sku | escape }}</td>
               {%- endif -%}
               {%- if section.settings.show_price -%}
-                <td class="is-numeric" data-label="{{ section.settings.col_price | default: 'Trade Price' | escape }}" data-value="{{ trade_price_num }}">
+                <td class="is-numeric trade-stock-list__price" data-label="{{ section.settings.col_price | default: 'Trade Price' | escape }}" data-value="{{ trade_price_num }}" data-price-cell>
                   {%- if trade_price != blank -%}
                     {{ trade_price_num | times: 100 | round | money_without_trailing_zeros }}
                   {%- elsif section.settings.price_fallback -%}
@@ -394,6 +408,7 @@
         });
         if (loading) loading.hidden = true;
         applyFilters();
+        loadNetwisePrices();
       }).catch(function () { if (loading) loading.textContent = 'Some products could not be loaded — refresh to try again.'; });
     }
 
@@ -463,7 +478,53 @@
     }
     function csvCell(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }
 
+    /* Live trade prices from Netwise (same request its own storefront script makes) */
+    var inner = root.querySelector('[data-trade-stock-list]');
+    function loadNetwisePrices() {
+      if (!inner || inner.getAttribute('data-price-source') !== 'netwise') return;
+      var cells = tbody.querySelectorAll('[data-price-cell]');
+      if (!cells.length) return;
+      var backend = inner.getAttribute('data-nw-backend');
+      var shop = inner.getAttribute('data-nw-shop');
+      var customerId = parseInt(inner.getAttribute('data-nw-customer') || '0', 10);
+      var exGst = inner.getAttribute('data-ex-gst') === 'true';
+      var currency = inner.getAttribute('data-currency') || 'AUD';
+      if (!backend || !customerId) return;
+      var ids = {};
+      tbody.querySelectorAll('tr[data-product-id]').forEach(function (tr) { ids[tr.getAttribute('data-product-id')] = true; });
+      var all = Object.keys(ids).map(Number);
+      var chunks = [];
+      for (var i = 0; i < all.length; i += 25) chunks.push(all.slice(i, i + 25));
+      var fmt = new Intl.NumberFormat('en-AU', { style: 'currency', currency: currency, minimumFractionDigits: 2 });
+      Promise.all(chunks.map(function (chunk) {
+        return fetch(backend + '/api/storefront/v2/pricing/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Netwise-Shop-Domain': shop },
+          body: JSON.stringify({ customer_id: customerId, product_ids: chunk })
+        }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+      })).then(function (results) {
+        var byVariant = {};
+        results.forEach(function (res) {
+          if (!res || res.status !== 'found' || !res.products) return;
+          Object.keys(res.products).forEach(function (handle) {
+            var variants = res.products[handle].variants || {};
+            Object.keys(variants).forEach(function (vid) { byVariant[vid] = parseFloat(variants[vid].price); });
+          });
+        });
+        tbody.querySelectorAll('tr[data-variant-id]').forEach(function (tr) {
+          var cell = tr.querySelector('[data-price-cell]');
+          var price = byVariant[tr.getAttribute('data-variant-id')];
+          if (!cell || isNaN(price)) return;
+          if (exGst) price = price / 1.1;
+          cell.textContent = fmt.format(price);
+          cell.setAttribute('data-value', price.toFixed(2));
+          cell.classList.add('is-netwise-price');
+        });
+      });
+    }
+
     applyFilters();
+    if (totalPages < 2) { loadNetwisePrices(); }
     loadRemainingPages();
   })();
 </script>
@@ -499,7 +560,7 @@
       "type": "richtext",
       "id": "intro",
       "label": "Intro text",
-      "default": "<p>Live stock levels across the full range. Click a product to view trade pricing and order.</p>"
+      "default": "<p>Live stock levels and your trade pricing across the full range. Click a product to order.</p>"
     },
     {
       "type": "text",
@@ -564,8 +625,32 @@
       "type": "checkbox",
       "id": "show_price",
       "label": "Show trade price column",
-      "default": false,
-      "info": "Off for now. Turn on once the trade.price metafield has been set up and filled in."
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "price_source",
+      "label": "Trade price source",
+      "options": [
+        { "value": "netwise", "label": "Netwise (live)" },
+        { "value": "metafield", "label": "Trade price metafield" }
+      ],
+      "default": "netwise",
+      "info": "Netwise (live) pulls each customer's trade price from Netwise when the page loads, the same way Netwise prices product pages. If Netwise can't be reached it falls back to the metafield / retail price rules below."
+    },
+    {
+      "type": "checkbox",
+      "id": "price_ex_gst",
+      "label": "Show Netwise prices ex GST",
+      "default": true,
+      "info": "Netwise returns the price as charged at checkout (GST inclusive). Tick to divide by 1.1 and show the ex GST figure."
+    },
+    {
+      "type": "text",
+      "id": "netwise_backend_url",
+      "label": "Netwise pricing service URL",
+      "default": "https://nw-prod-a8e46749d6a0.herokuapp.com",
+      "info": "Leave as is unless Netwise support gives you a new address."
     },
     {
       "type": "text",
