@@ -1,0 +1,223 @@
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .editorial-gallery-{{ ai_gen_id }} {
+    padding: {{ block.settings.padding }}px;
+    background-color: {{ block.settings.background_color }};
+  }
+
+  .editorial-gallery__container-{{ ai_gen_id }} {
+    column-count: {{ block.settings.columns_desktop }};
+    column-gap: {{ block.settings.gap }}px;
+    max-width: 100%;
+  }
+
+  .editorial-gallery__item-{{ ai_gen_id }} {
+    break-inside: avoid;
+    margin-bottom: {{ block.settings.gap }}px;
+    border-radius: {{ block.settings.border_radius }}px;
+    overflow: hidden;
+    display: block;
+    {% if block.settings.shadow_enabled %}
+      box-shadow: 0 4px 12px rgba(0, 0, 0, {{ block.settings.shadow_opacity }});
+    {% endif %}
+  }
+
+  .editorial-gallery__image-{{ ai_gen_id }} {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .editorial-gallery__link {
+    text-decoration: none;
+    display: block;
+  }
+
+  {% if block.settings.hover_effect == 'zoom' %}
+    .editorial-gallery__item-{{ ai_gen_id }}:hover .editorial-gallery__image-{{ ai_gen_id }} {
+      transform: scale(1.05);
+    }
+  {% endif %}
+
+  @media screen and (max-width: 749px) {
+    .editorial-gallery__container-{{ ai_gen_id }} {
+      column-count: {{ block.settings.columns_mobile }};
+    }
+  }
+{% endstyle %}
+
+<div class="editorial-gallery-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="editorial-gallery__container-{{ ai_gen_id }}">
+    {% for i in (1..block.settings.image_count) %}
+      {% assign image_key = 'image_' | append: i %}
+      {% assign link_key = 'link_' | append: i %}
+      {% assign image = block.settings[image_key] %}
+      {% assign link = block.settings[link_key] %}
+
+      {% if image != blank %}
+        <div class="editorial-gallery__item-{{ ai_gen_id }}">
+          {% if link != blank %}
+            <a href="{{ link }}" class="editorial-gallery__link" target="_blank" rel="noopener">
+          {% endif %}
+
+            <img
+              src="{{ image | image_url: width: 1200 }}"
+              alt="{{ image.alt | escape }}"
+              loading="lazy"
+              width="{{ image.width }}"
+              height="{{ image.height }}"
+              class="editorial-gallery__image-{{ ai_gen_id }}"
+            >
+
+          {% if link != blank %}
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Editorial Gallery",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "label": "Columns on desktop",
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "label": "Gap between images",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Border radius",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "shadow_enabled",
+      "label": "Enable shadow",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "shadow_opacity",
+      "min": 0.1,
+      "max": 0.5,
+      "step": 0.1,
+      "label": "Shadow opacity",
+      "default": 0.2
+    },
+    {
+      "type": "select",
+      "id": "hover_effect",
+      "label": "Hover effect",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "zoom", "label": "Zoom" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "range",
+      "id": "image_count",
+      "min": 1,
+      "max": 9,
+      "step": 1,
+      "label": "Number of images",
+      "default": 6
+    },
+
+    { "type": "image_picker", "id": "image_1", "label": "Image 1" },
+    { "type": "text", "id": "link_1", "label": "Link for Image 1" },
+
+    { "type": "image_picker", "id": "image_2", "label": "Image 2" },
+    { "type": "text", "id": "link_2", "label": "Link for Image 2" },
+
+    { "type": "image_picker", "id": "image_3", "label": "Image 3" },
+    { "type": "text", "id": "link_3", "label": "Link for Image 3" },
+
+    { "type": "image_picker", "id": "image_4", "label": "Image 4" },
+    { "type": "text", "id": "link_4", "label": "Link for Image 4" },
+
+    { "type": "image_picker", "id": "image_5", "label": "Image 5" },
+    { "type": "text", "id": "link_5", "label": "Link for Image 5" },
+
+    { "type": "image_picker", "id": "image_6", "label": "Image 6" },
+    { "type": "text", "id": "link_6", "label": "Link for Image 6" },
+
+    { "type": "image_picker", "id": "image_7", "label": "Image 7" },
+    { "type": "text", "id": "link_7", "label": "Link for Image 7" },
+
+    { "type": "image_picker", "id": "image_8", "label": "Image 8" },
+    { "type": "text", "id": "link_8", "label": "Link for Image 8" },
+
+    { "type": "image_picker", "id": "image_9", "label": "Image 9" },
+    { "type": "text", "id": "link_9", "label": "Link for Image 9" }
+  ],
+  "presets": [
+    {
+      "name": "Editorial Gallery"
+    }
+  ]
+}
+{% endschema %}

@@ -1,148 +1,35 @@
-
-
-{% assign block_settings = block.settings %}
 {%- assign block_index = section.blocks | find_index: 'id', block.id -%}
-{%- assign section_index = section.index -%}
 
-{% capture children %}
-  {% liquid
-    assign preview_image = block_settings.image_1
-    if block_settings.media_type_1 == 'video'
-      assign preview_image = block_settings.video_1.preview_image
-    endif
+{%- comment -%}
+  Added: optional mobile image and mobile alignment per slide.
+  Everything else is the theme's original _slide.liquid, unchanged.
+{%- endcomment -%}
+{%- liquid
+  assign has_mobile_image = false
+  if block.settings.media_type_1 == 'image' and block.settings.image_1 != blank and block.settings.mobile_image_1 != blank
+    assign has_mobile_image = true
+  endif
 
-    assign rounded_image_corners = false
-    if block_settings.background_color == blank or section.settings.background_color == block_settings.background_color
-      assign rounded_image_corners = true
-    endif
+  assign mobile_widths = '450,600,750,900,1100,1300,1500,1800' | split: ','
 
-    if block_settings.background_color != blank
-      assign skip_slide_contrast = false
-      if section.settings.content_position == 'on-media'
-        assign skip_slide_contrast = true
-      endif
-      render 'contrast-override', background_color: block_settings.background_color, section_id: block.id, skip_contrast: skip_slide_contrast
-      assign class = 'color-custom-' | append: block.id
-    endif
-  %}
-  {% if section.settings.slide_height == 'adapt_image' and block_index == 0 and preview_image != blank %}
-    {%
-      # Great example of why it can be helpful for a section to be able to read the settings of its direct child blocks.
-      # In this case, we want the section to be able to read the image aspect ratio of the first slide and apply it to the slideshow slides and slides.
-    %}
-    {% style %}
-      .shopify-section-{{ section.id }} slideshow-slides,
-      .shopify-section-{{ section.id }} slideshow-slide {
-        min-height: {{ 1 | divided_by: preview_image.aspect_ratio | times: 100 }}vw;
-      }
-    {% endstyle %}
-  {% endif %}
-
-  <div class="slide__image-container{% if rounded_image_corners %} slide__image-container--rounded{% endif %}">
-    {%- if block_settings.toggle_overlay -%}
-      {% render 'overlay', settings: block_settings %}
-    {%- endif -%}
-    {%- if preview_image -%}
-      {%- liquid
-        assign height = preview_image.width | divided_by: preview_image.aspect_ratio | round
-        assign media_width_desktop = '100vw'
-        assign media_width_mobile = '100vw'
-        assign sizes = '(min-width: 750px) ' | append: media_width_desktop | append: ', ' | append: media_width_mobile
-        assign lazy_sizes = 'auto, ' | append: sizes
-        assign widths = '832, 1200, 1600, 1920, 2560, 3840'
-      %}
-
-      {%- liquid
-        assign loading = 'lazy'
-
-        if block_index == 0 and section_index <= 3
-          assign loading = 'eager'
-          assign sizes = lazy_sizes
-        endif
-
-        assign fetchpriority = 'low'
-        if block_index == 0 and section_index == 1
-          assign fetchpriority = 'high'
-        endif
-      -%}
-
-      {%- if block_settings.media_type_1 == 'image' -%}
-        {{
-          block_settings.image_1
-          | image_url: width: 3840
-          | image_tag: height: height, sizes: sizes, widths: widths, class: 'slide__image', loading: loading, fetchpriority: fetchpriority
-        }}
-      {%- else -%}
-        {%- if block_settings.video_1.preview_image -%}
-
-          {{
-            block_settings.video_1.preview_image
-            | image_url: width: 3840
-            | image_tag:
-              height: height,
-              sizes: sizes,
-              widths: widths,
-              loading: loading,
-              class: 'slide__video-poster',
-              fetchpriority: fetchpriority
-          }}
-        {%- endif -%}
-        {{
-          block_settings.video_1
-          | video_tag: poster: nil, autoplay: true, loop: true, controls: false, muted: true, class: 'slide__video'
-        }}
-      {%- endif -%}
-    {%- else -%}
-      {%- liquid
-        assign modulo_result = block_index | modulo: 2
-        assign placeholder_variant = 2 | minus: modulo_result
-        assign placeholder_name = 'hero-apparel-' | append: placeholder_variant
-      -%}
-      {{ placeholder_name | placeholder_svg_tag: 'slide__image' }}
-    {%- endif -%}
-  </div>
-  <div
-    class="spacing-style slide__content {{ class }}{% if preview_image or block_settings.toggle_overlay %} background-transparent{% endif %}"
-    style="{% render 'spacing-style', settings: block_settings %}"
-    {{ block.shopify_attributes }}
-  >
-    <div
-      class="group-block-content
-      layout-panel-flex
-      layout-panel-flex--{{ block_settings.content_direction }}
-      {% if block_settings.vertical_on_mobile %}mobile-column{% endif %}"
-      style="{% render 'layout-panel-style', settings: block_settings %}"
-    >
-      {% content_for 'blocks' %}
-    </div>
-  </div>
-{% endcapture %}
-
-{% render 'slideshow-slide',
-  index: block_index,
-  class: class,
-  children: children,
-  attributes: block.shopify_attributes,
-  slide_size: section.settings.slide_height,
-  navigate_to_slide: true
-%}
+  # Maps the mobile alignment setting to a flex value and a matching text-align.
+  assign mobile_alignment = block.settings.horizontal_alignment_mobile
+  assign mobile_text_align = ''
+  case mobile_alignment
+    when 'flex-start'
+      assign mobile_text_align = 'left'
+    when 'center'
+      assign mobile_text_align = 'center'
+    when 'flex-end'
+      assign mobile_text_align = 'right'
+  endcase
+-%}
 
 {% stylesheet %}
   .slide__content {
     height: 100%;
     position: relative;
     z-index: var(--layer-flat);
-
-    @supports (animation-timeline: auto) {
-      opacity: 0;
-      animation: slide-reveal both linear;
-      animation-timeline: var(--slideshow-timeline);
-    }
-
-    @media (prefers-reduced-motion) {
-      opacity: 1;
-      animation: none;
-    }
   }
 
   .slide__content > * {
@@ -161,61 +48,175 @@
     position: absolute;
   }
 
+  .slide__image-container > placeholder-image,
+  .slide__image-container > placeholder-image > img {
+    width: 100%;
+  }
+
   .slide__image-container > .slide__image,
-  .slide__image-container > .slide__video,
-  .slide__image-container > .slide__video-poster {
-    position: relative;
+  .slide__image-container > .slide__video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center center;
   }
 
-  .slide__image-container > .slide__video-poster {
-    position: absolute;
+  /* Added for the mobile image. <picture> sits between .slide__image-container
+     and the <img>, so the direct-child rule above stops matching. display:contents
+     keeps the layout identical, and the rule below restores the sizing and
+     object-fit for the wrapped image. */
+  .slide__picture {
+    display: contents;
   }
 
-  /*
-   * Force Safari to recalculate the timeline state on timeline refresh (after loop)
-   */
-  slideshow-component[refreshing-timeline] .slide__content {
-    animation: none;
+  .slide__image-container > .slide__picture > .slide__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
   }
 
-  slideshow-slide .slide__image-container--rounded {
-    border-radius: var(--corner-radius, 0);
+  /* Added for mobile alignment. layout-panel-style writes --horizontal-alignment
+     as an inline style, so !important is needed to override it below 750px.
+     The class is only present when a mobile alignment has been chosen. */
+  @media screen and (width < 750px) {
+    .slide__content--mobile-alignment .group-block-content {
+      --horizontal-alignment: var(--slide-mobile-alignment) !important;
+    }
+
+    .slide__content--mobile-alignment {
+      text-align: var(--slide-mobile-text-align);
+    }
   }
 {% endstylesheet %}
+
+{%- comment -%}
+  Mobile srcset built by hand, because image_tag can only produce an <img>.
+  Candidates wider than the uploaded file are skipped; native width goes last.
+{%- endcomment -%}
+{%- capture mobile_srcset -%}
+  {%- if has_mobile_image -%}
+    {%- for w in mobile_widths -%}
+      {%- assign w_num = w | times: 1 -%}
+      {%- if w_num < block.settings.mobile_image_1.width -%}
+        {{ block.settings.mobile_image_1 | image_url: width: w_num }} {{ w_num }}w,
+      {%- endif -%}
+    {%- endfor -%}
+    {{ block.settings.mobile_image_1 | image_url: width: block.settings.mobile_image_1.width }} {{ block.settings.mobile_image_1.width }}w
+  {%- endif -%}
+{%- endcapture -%}
+
+{% capture children %}
+  {% liquid
+    assign preview_image = block.settings.image_1
+    if block.settings.media_type_1 == 'video'
+      assign preview_image = block.settings.video_1.preview_image
+    endif
+  %}
+  {% if section.settings.slide_height == 'adapt_image' and block_index == 1 and preview_image != blank %}
+    {%
+      # Great example of why it can be helpful for a section to be able to read the settings of its direct child blocks.
+      # In this case, we want the section to be able to read the image aspect ratio of the first slide and apply it to the slideshow slides and slides.
+    %}
+    {% style %}
+      .shopify-section-{{ section.id }} slideshow-slides,
+      .shopify-section-{{ section.id }} slideshow-slide {
+        min-height: {{ 1 | divided_by: preview_image.aspect_ratio | times: 100 }}vw;
+      }
+    {% endstyle %}
+  {% endif %}
+
+  <div class="slide__image-container">
+    {%- if block.settings.toggle_overlay -%}
+      {% render 'overlay', settings: block.settings %}
+    {%- endif -%}
+    {%- if preview_image -%}
+      {%- liquid
+        assign height = preview_image.width | divided_by: preview_image.aspect_ratio | round
+        assign media_width_desktop = '100vw'
+        assign media_width_mobile = '100vw'
+        assign sizes = '(min-width: 750px) ' | append: media_width_desktop | append: ', ' | append: media_width_mobile
+        assign lazy_sizes = 'auto, ' | append: sizes
+        assign widths = '300, 525, 750, 900, 1024, 1280, 1440, 1700, 1920, 2048, 2304, 2560, 2880, 3072, 3840'
+      %}
+
+      {%- if block.settings.media_type_1 == 'image' -%}
+        {%- comment -%} Added: only wrap in <picture> when a mobile image is set. {%- endcomment -%}
+        {%- if has_mobile_image -%}
+          <picture class="slide__picture"><source
+            media="(max-width: 749.98px)"
+            srcset="{{ mobile_srcset | strip_newlines | strip }}"
+            sizes="100vw"
+            width="{{ block.settings.mobile_image_1.width }}"
+            height="{{ block.settings.mobile_image_1.height }}"
+          >
+        {%- endif -%}
+        {%- if block_index == 1 -%}
+          {{
+            block.settings.image_1
+            | image_url: width: 3840
+            | image_tag: height: height, sizes: sizes, widths: widths, loading: 'eager', class: 'slide__image'
+          }}
+        {%- else -%}
+          {{
+            block.settings.image_1
+            | image_url: width: 3840
+            | image_tag: height: height, widths: widths, loading: 'lazy', class: 'slide__image', sizes: lazy_sizes
+          }}
+        {%- endif -%}
+        {%- if has_mobile_image -%}</picture>{%- endif -%}
+      {%- else -%}
+        {{
+          block.settings.video_1
+          | video_tag: image_size: '3840x', autoplay: true, loop: true, controls: false, muted: true, class: 'slide__video'
+        }}
+      {%- endif -%}
+    {%- else -%}
+      <placeholder-image data-block-id="{{ block.id }}" data-type="general"></placeholder-image>
+    {%- endif -%}
+  </div>
+  <div
+    class="spacing-style slide__content{% if block.settings.inherit_color_scheme == false %} color-{{ block.settings.color_scheme }}{% endif %}{% if preview_image or block.settings.toggle_overlay %} background-transparent{% endif %}{% if mobile_alignment != 'inherit' %} slide__content--mobile-alignment{% endif %}"
+    style="
+      {% render 'spacing-style', settings: block.settings %}
+      {%- comment -%} Added: only emitted when a mobile alignment has been chosen. {%- endcomment -%}
+      {% if mobile_alignment != 'inherit' %}
+        --slide-mobile-alignment: {{ mobile_alignment }};
+        --slide-mobile-text-align: {{ mobile_text_align }};
+      {% endif %}
+    "
+    {{ block.shopify_attributes }}
+  >
+    <div
+      class="group-block-content
+      layout-panel-flex
+      layout-panel-flex--{{ block.settings.content_direction }}
+      {% if block.settings.vertical_on_mobile %}mobile-column{% endif %}"
+      style="{% render 'layout-panel-style', settings: block.settings %}"
+    >
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+{% endcapture %}
+
+{%- capture class -%}
+  {%- if block.settings.inherit_color_scheme == false -%}
+    color-{{ block.settings.color_scheme }}
+  {%- endif -%}
+{%- endcapture -%}
+
+{% render 'slideshow-slide',
+  index: block_index,
+  class: class,
+  children: children,
+  attributes: block.shopify_attributes
+%}
 
 {% schema %}
 {
   "name": "t:names.slide",
   "tag": null,
   "blocks": [
-    {
-      "type": "_heading"
-    },
-    {
-      "type": "button"
-    },
-    {
-      "type": "text"
-    },
-    {
-      "type": "group"
-    },
-    {
-      "type": "image"
-    },
-    {
-      "type": "video"
-    },
-    {
-      "type": "icon"
-    },
-    {
-      "type": "jumbo-text"
-    },
     {
       "type": "@theme"
     },
@@ -244,6 +245,13 @@
       "type": "image_picker",
       "id": "image_1",
       "label": "t:settings.image",
+      "visible_if": "{{ block.settings.media_type_1 == 'image' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image_1",
+      "label": "Mobile image",
+      "info": "Optional. Shown below 750px. Falls back to the image above.",
       "visible_if": "{{ block.settings.media_type_1 == 'image' }}"
     },
     {
@@ -355,6 +363,31 @@
     },
     {
       "type": "select",
+      "id": "horizontal_alignment_mobile",
+      "label": "Mobile alignment",
+      "info": "Overrides the alignment above on screens under 750px.",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Same as desktop"
+        },
+        {
+          "value": "flex-start",
+          "label": "t:options.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.center"
+        },
+        {
+          "value": "flex-end",
+          "label": "t:options.right"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "select",
       "id": "vertical_alignment_flex_direction_column",
       "label": "t:settings.position",
       "options": [
@@ -393,10 +426,17 @@
       "content": "t:content.appearance"
     },
     {
-      "type": "color",
-      "id": "background_color",
-      "label": "t:settings.background_color",
-      "placeholder": "t:settings.default"
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "t:settings.inherit_color_scheme",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
     },
     {
       "type": "checkbox",
@@ -494,36 +534,50 @@
     {
       "name": "t:names.slide",
       "settings": {
-        "horizontal_alignment_flex_direction_column": "center",
-        "padding-inline-start": 48,
-        "padding-inline-end": 48,
-        "padding-block-start": 48,
-        "padding-block-end": 48
+        "horizontal_alignment_flex_direction_column": "center"
       },
       "blocks": {
-        "heading": {
-          "type": "text",
-          "name": "t:names.heading",
+        "group": {
+          "type": "group",
           "settings": {
-            "text": "t:html_defaults.new_arrivals_h3"
-          }
-        },
-        "text": {
-          "type": "text",
-          "settings": {
-            "text": "t:html_defaults.latest_products",
-            "padding-block-end": 20
-          }
-        },
-        "button": {
-          "type": "button",
-          "settings": {
-            "label": "t:text_defaults.shop_now_button_label",
-            "link": "shopify://collections/all"
-          }
+            "horizontal_alignment_flex_direction_column": "center",
+            "width": "custom",
+            "custom_width": 50,
+            "width_mobile": "custom",
+            "inherit_color_scheme": false,
+            "color_scheme": "scheme-6",
+            "custom_width_mobile": 85,
+            "padding-inline-start": 48,
+            "padding-inline-end": 48,
+            "padding-block-start": 48,
+            "padding-block-end": 48
+          },
+          "blocks": {
+            "heading": {
+              "type": "text",
+              "settings": {
+                "text": "<h2>New arrivals</h2>"
+              }
+            },
+            "text": {
+              "type": "text",
+              "settings": {
+                "text": "<p>Introducing our latest products, made especially for the season. Shop your favorites before they're gone!</p>",
+                "padding-block-end": 20
+              }
+            },
+            "button": {
+              "type": "button",
+              "settings": {
+                "label": "Shop now",
+                "link": "shopify://collections/all"
+              }
+            }
+          },
+          "block_order": ["heading", "text", "button"]
         }
       },
-      "block_order": ["heading", "text", "button"]
+      "block_order": ["group"]
     }
   ]
 }

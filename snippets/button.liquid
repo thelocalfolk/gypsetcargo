@@ -1,4 +1,4 @@
-{%- doc -%}
+{% doc %}
   Intended for use in a block similar to the button block.
 
   @param {string} link - link to render
@@ -6,10 +6,19 @@
 
   @example
   {% render 'button', link: '/collections/all' %}
-{%- enddoc -%}
+{% enddoc %}
 
-{% assign block_settings = block.settings %}
-{% render 'button-custom-styles', block_settings: block_settings, block_id: block.id %}
+{% stylesheet %}
+  .link {
+    text-decoration: none;
+    text-decoration-color: currentcolor;
+
+    &:hover {
+      color: var(--color-primary-hover);
+      text-decoration-color: transparent;
+    }
+  }
+{% endstylesheet %}
 
 <a
   {% if link == blank %}
@@ -20,15 +29,15 @@
   {% endif %}
   class="
     size-style
-    {{ block_settings.style_class }}
-    {{ block_settings.style_class }}--{{ block.id }}
+    {{ block.settings.style_class }}
+    {{ block.settings.style_class }}--{{ block.id }}
   "
-  style="{% render 'size-style', settings: block_settings %}"
-  {%- if block_settings.open_in_new_tab -%}
+  style="{% render 'size-style', settings: block.settings %}"
+  {%- if block.settings.open_in_new_tab -%}
     target="_blank"
     rel="noopener noreferrer"
   {%- endif -%}
   {{ block.shopify_attributes }}
 >
-  {{ block_settings.label }}
+  {{ block.settings.label }}
 </a>

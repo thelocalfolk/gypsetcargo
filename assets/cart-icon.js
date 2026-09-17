@@ -1,7 +1,6 @@
 import { Component } from '@theme/component';
 import { onAnimationEnd } from '@theme/utilities';
-import { ThemeEvents } from '@theme/events';
-import { StandardEvents, CartLinesUpdateEvent } from '@shopify/events';
+import { ThemeEvents, CartUpdateEvent } from '@theme/events';
 
 /**
  * A custom element that displays a cart icon.
@@ -9,73 +8,55 @@ import { StandardEvents, CartLinesUpdateEvent } from '@shopify/events';
  * @typedef {object} Refs
  * @property {HTMLElement} cartBubble - The cart bubble element.
  * @property {HTMLElement} cartBubbleText - The cart bubble text element.
- * @property {HTMLElement} cartBubbleCount - The cart bubble count element.
  *
  * @extends {Component<Refs>}
  */
 class CartIcon extends Component {
-  requiredRefs = ['cartBubble', 'cartBubbleText', 'cartBubbleCount'];
+  requiredRefs = ['cartBubble', 'cartBubbleText'];
 
   /** @type {number} */
   get currentCartCount() {
-    return parseInt(this.refs.cartBubbleCount.textContent ?? '0', 10);
+    return parseInt(this.refs.cartBubbleText.textContent ?? '0', 10);
   }
 
   set currentCartCount(value) {
-    this.refs.cartBubbleCount.textContent = value < 100 ? String(value) : '';
+    this.refs.cartBubbleText.textContent = value < 100 ? String(value) : '';
   }
 
   connectedCallback() {
     super.connectedCallback();
 
-    document.addEventListener(StandardEvents.cartLinesUpdate, this.onCartUpdate);
-    window.addEventListener('pageshow', this.onPageShow);
+    document.addEventListener(ThemeEvents.cartUpdate, this.onCartUpdate);
     this.ensureCartBubbleIsCorrect();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
 
-    document.removeEventListener(StandardEvents.cartLinesUpdate, this.onCartUpdate);
-    window.removeEventListener('pageshow', this.onPageShow);
+    document.removeEventListener(ThemeEvents.cartUpdate, this.onCartUpdate);
   }
 
   /**
-   * Handles the page show event when the page is restored from cache.
-   * @param {PageTransitionEvent} event - The page show event.
-   */
-  onPageShow = (event) => {
-    if (event.persisted) {
-      this.ensureCartBubbleIsCorrect();
-    }
-  };
-
-  /**
    * Handles the cart update event.
-   * @param {CartLinesUpdateEvent} event - The cart update event.
+   * @param {CartUpdateEvent} event - The cart update event.
    */
-  onCartUpdate = (event) => {
-    event.promise
-      ?.then(({ cart, detail }) => {
-        const itemCount = cart?.totalQuantity ?? detail?.itemCount ?? 0;
+  onCartUpdate = async (event) => {
+    const itemCount = event.detail.data?.itemCount ?? 0;
+    const comingFromProductForm = event.detail.data?.source === 'product-form-component';
 
-        this.renderCartBubble(itemCount);
-      })
-      .catch((error) => {
-        if (error?.name !== 'AbortError') console.warn('[cart-icon] Event promise rejected:', error);
-      });
+    this.renderCartBubble(itemCount, comingFromProductForm);
   };
 
   /**
    * Renders the cart bubble.
-   * @param {number} itemCount - The absolute number of items in the cart.
-   * @param {boolean} [animate=true] - Whether to animate the bubble.
+   * @param {number} itemCount - The number of items in the cart.
+   * @param {boolean} comingFromProductForm - Whether the cart update is coming from the product form.
    */
-  renderCartBubble = async (itemCount, animate = true) => {
-    this.refs.cartBubbleCount.classList.toggle('hidden', itemCount === 0);
+  renderCartBubble = async (itemCount, comingFromProductForm, animate = true) => {
+    // If the cart update is coming from the product form, we add to the current cart count, otherwise we set the new cart count
     this.refs.cartBubble.classList.toggle('visually-hidden', itemCount === 0);
-
-    this.currentCartCount = itemCount;
+    this.refs.cartBubble.classList.toggle('cart-bubble--animating', itemCount > 0 && animate);
+    this.currentCartCount = comingFromProductForm ? this.currentCartCount + itemCount : itemCount;
 
     this.classList.toggle('header-actions__cart-icon--has-cart', itemCount > 0);
 
@@ -87,13 +68,7 @@ class CartIcon extends Component {
       })
     );
 
-    if (!animate || itemCount === 0) return;
-
-    // Ensure element is visible before starting animation
-    // Use requestAnimationFrame to ensure the browser sees the state change
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-
-    this.refs.cartBubble.classList.add('cart-bubble--animating');
+    if (!animate) return;
     await onAnimationEnd(this.refs.cartBubbleText);
 
     this.refs.cartBubble.classList.remove('cart-bubble--animating');
@@ -103,28 +78,18 @@ class CartIcon extends Component {
    * Checks if the cart count is correct.
    */
   ensureCartBubbleIsCorrect = () => {
-    // Ensure refs are available
-    if (!this.refs.cartBubbleCount) return;
-
     const sessionStorageCount = sessionStorage.getItem('cart-count');
-
-    // If no session storage data, nothing to check
-    if (sessionStorageCount === null) return;
-
-    const visibleCount = this.refs.cartBubbleCount.textContent;
+    const visibleCount = this.refs.cartBubbleText.textContent;
+    if (sessionStorageCount === visibleCount || sessionStorageCount === null) return;
 
     try {
       const { value, timestamp } = JSON.parse(sessionStorageCount);
 
-      // Check if the stored count matches what's visible
-      if (value === visibleCount) return;
-
-      // Only update if timestamp is recent (within 10 seconds)
       if (Date.now() - timestamp < 10000) {
         const count = parseInt(value, 10);
 
         if (count >= 0) {
-          this.renderCartBubble(count, false);
+          this.renderCartBubble(count, false, false);
         }
       }
     } catch (_) {

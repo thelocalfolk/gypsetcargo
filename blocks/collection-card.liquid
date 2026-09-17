@@ -2,6 +2,14 @@
 
 {% assign collection = block.settings.collection %}
 
+{% style %}
+  {% if request.visual_preview_mode %}
+    .collection-card {
+      min-width: 250px;
+    }
+  {% endif %}
+{% endstyle %}
+
 {% capture card_image %}
   {% content_for 'block',
     type: '_collection-card-image',
@@ -14,13 +22,7 @@
   {% content_for 'blocks' %}
 {% endcapture %}
 
-{% render 'collection-card',
-  card_image: card_image,
-  children: children,
-  block: block,
-  collection: collection,
-  section: section
-%}
+{% render 'collection-card', card_image: card_image, children: children, block: block %}
 
 {% schema %}
 {
@@ -124,19 +126,22 @@
       "content": "t:content.appearance"
     },
     {
-      "type": "color",
-      "id": "background_color",
-      "label": "t:settings.background_color",
-      "placeholder": "t:settings.default"
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "t:settings.inherit_color_scheme",
+      "default": true
     },
     {
-      "type": "header",
-      "content": "t:content.borders"
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
     },
     {
       "type": "select",
       "id": "border",
-      "label": "t:settings.style",
+      "label": "t:settings.borders",
       "options": [
         {
           "value": "none",
@@ -153,10 +158,10 @@
       "type": "range",
       "id": "border_width",
       "min": 0,
-      "max": 100,
-      "step": 1,
+      "max": 10,
+      "step": 0.5,
       "unit": "px",
-      "label": "t:settings.thickness",
+      "label": "t:settings.border_width",
       "default": 1,
       "visible_if": "{{ block.settings.border != 'none' }}"
     },
@@ -167,15 +172,8 @@
       "max": 100,
       "step": 1,
       "unit": "%",
-      "label": "t:settings.opacity",
+      "label": "t:settings.border_opacity",
       "default": 100,
-      "visible_if": "{{ block.settings.border != 'none' }}"
-    },
-    {
-      "type": "color",
-      "id": "border_color",
-      "label": "t:settings.color",
-      "placeholder": "t:settings.default",
       "visible_if": "{{ block.settings.border != 'none' }}"
     },
     {
@@ -200,11 +198,15 @@
       "blocks": {
         "collection-card-image": {
           "type": "_collection-card-image",
-          "static": true
+          "static": true,
+          "settings": {
+            "collection": "{{ closest.collection }}"
+          }
         },
         "collection-title": {
           "type": "collection-title",
           "settings": {
+            "collection": "{{ closest.collection }}",
             "type_preset": "h4"
           }
         }

@@ -1,16 +1,32 @@
-{%- doc -%}
-  Renders a carousel of predictive search results cards.
+{% comment %}
+  Renders a carousel of predictive search results cards
 
-  @param {string} title - The title of the carousel.
-  @param {object} resources - The resources to display.
-  @param {string} resource_type - The type of resource to display.
-{%- enddoc -%}
+    Accepts:
+    - title: {String} The title of the carousel
+    - resources: {Array} The resources to display in the carousel
+    - resource_type: {String} The type of resource to display in the carousel
+    Usage:
+    {% render 'predictive-search-resource-carousel', title: 'Collections', resources: predictive_search.resources.collections %}
+{% endcomment %}
+
+{% stylesheet %}
+  .predictive-search-results__wrapper slideshow-slides {
+    /* Add padding to prevent hover animations from being clipped in slideshow
+       15px accommodates:
+       - Scale effect (9px on each side from 1.03 scale)
+       - Lift effect (4px upward movement)
+       - Shadow (15px spread with -5px offset)
+       Using 16px for better alignment with our spacing scale */
+    padding: 16px;
+    margin-block: -16px;
+  }
+{% endstylesheet %}
 
 {% liquid
   capture slides
     for resource in resources
       capture children
-        render 'resource-card', resource_type: resource_type, resource: resource, image_aspect_ratio: '4 / 5', collection_thumbnails: 'multiple', product_view_context: 'search'
+        render 'resource-card', resource_type: resource_type, resource: resource, image_aspect_ratio: '4 / 5', collection_thumbnails: 'multiple'
       endcapture
       render 'slideshow-slide', index: forloop.index0, children: children, class: 'predictive-search-results__card'
     endfor
@@ -19,12 +35,12 @@
 
 {% capture header %}
   <div class="predictive-search-results__resource-header">
-    <h4
-      id="predictive-search-{{ resource_type }}"
+    <span
+      id="predictive-search-collections"
       class="predictive-search-results__title"
     >
       {{ title }}
-    </h4>
+    </span>
 
     {% if resources.size >= 4 %}
       {%- render 'slideshow-controls',
