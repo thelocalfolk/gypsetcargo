@@ -1,0 +1,750 @@
+{% comment %}
+  Section: Trade Stock List
+  Built for: Gypset Cargo — Atelier theme (Shopify Horizon family, v1.0.2)
+
+  A spreadsheet-style table of every active product and variant, showing
+  trade price, dead weight, live stock count and freight tier. Only renders
+  for logged-in customers carrying the trade tag (default: RETAILER); anyone
+  else sees a short message with a login link.
+
+  Where each column comes from:
+    Product / Variant  – native Shopify
+    Trade price        – variant metafield  trade.price  (Decimal or Money type, ex GST)
+    Dead weight        – native variant weight (stored in grams, shown in kg)
+    Stock count        – native variant inventory_quantity (inventory tracking must be on)
+    Freight tier       – product metafield  trade.freight_tier  (single line text / choice list)
+
+  Products are loaded 50 at a time (a Shopify Liquid limit). The first 50
+  render server-side; the rest are fetched quietly in the background using
+  the Section Rendering API so search, sorting and the CSV download all work
+  across the whole catalogue on a single page.
+
+  Schema notes: metafield namespace/key, trade tag, labels, GST note and
+  column visibility are all editable in the theme editor.
+{% endcomment %}
+
+{%- liquid
+  assign trade_tag = section.settings.trade_tag | strip
+  assign is_trade = false
+  if customer and trade_tag != blank
+    if customer.tags contains trade_tag
+      assign is_trade = true
+    endif
+  endif
+
+  assign price_ns = section.settings.price_metafield | split: '.' | first
+  assign price_key = section.settings.price_metafield | split: '.' | last
+  assign freight_ns = section.settings.freight_metafield | split: '.' | first
+  assign freight_key = section.settings.freight_metafield | split: '.' | last
+
+  assign login_url = routes.storefront_login_url | default: routes.account_login_url
+-%}
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="section section--{{ section.settings.section_width }} spacing-style color-{{ section.settings.color_scheme }} trade-stock-list"
+  id="section-{{ section.id }}"
+  style="{% render 'spacing-padding', settings: section.settings %}"
+>
+  {%- if is_trade or request.design_mode -%}
+    <div class="trade-stock-list__inner" data-trade-stock-list>
+      {%- paginate collections['all'].products by 50 -%}
+      {%- assign current_page = paginate.current_page -%}
+
+      {%- if current_page == 1 -%}
+        {%- comment -%} Heading + intro {%- endcomment -%}
+        {%- if section.settings.heading != blank -%}
+          <p class="trade-stock-list__heading h3">{{ section.settings.heading | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <div class="trade-stock-list__intro paragraph">{{ section.settings.intro }}</div>
+        {%- endif -%}
+
+        {%- comment -%} Toolbar: search, hide out of stock, download {%- endcomment -%}
+        <div class="trade-stock-list__toolbar">
+          <label class="trade-stock-list__search">
+            <span class="visually-hidden">{{ section.settings.search_placeholder | default: 'Search products' | escape }}</span>
+            <input
+              type="search"
+              placeholder="{{ section.settings.search_placeholder | default: 'Search products' | escape }}"
+              data-stock-search
+              autocomplete="off"
+            >
+          </label>
+          <label class="trade-stock-list__toggle">
+            <input type="checkbox" data-stock-hide-empty>
+            <span>{{ section.settings.hide_out_of_stock_label | default: 'Hide out of stock' | escape }}</span>
+          </label>
+          {%- if section.settings.show_download -%}
+            <button type="button" class="button button-secondary trade-stock-list__download" data-stock-download>
+              {{ section.settings.download_label | default: 'Download CSV' | escape }}
+            </button>
+          {%- endif -%}
+          <span class="trade-stock-list__count" data-stock-count aria-live="polite"></span>
+        </div>
+      {%- endif -%}
+
+        {%- if current_page == 1 -%}
+          <div class="trade-stock-list__table-wrap" data-total-pages="{{ paginate.pages }}">
+            <table class="trade-stock-list__table" data-stock-table>
+              <thead>
+                <tr>
+                  <th scope="col" data-sort="text" class="is-sortable">{{ section.settings.col_product | default: 'Product' | escape }}</th>
+                  <th scope="col" data-sort="text" class="is-sortable">{{ section.settings.col_variant | default: 'Variant / Details' | escape }}</th>
+                  {%- if section.settings.show_sku -%}
+                    <th scope="col" data-sort="text" class="is-sortable">{{ section.settings.col_sku | default: 'SKU' | escape }}</th>
+                  {%- endif -%}
+                  {%- if section.settings.show_price -%}
+                    <th scope="col" data-sort="number" class="is-sortable is-numeric">
+                      {{ section.settings.col_price | default: 'Trade Price' | escape }}
+                      {%- if section.settings.gst_note != blank -%}
+                        <small>{{ section.settings.gst_note | escape }}</small>
+                      {%- endif -%}
+                    </th>
+                  {%- endif -%}
+                  {%- if section.settings.show_weight -%}
+                    <th scope="col" data-sort="number" class="is-sortable is-numeric">{{ section.settings.col_weight | default: 'Dead Weight (kg)' | escape }}</th>
+                  {%- endif -%}
+                  <th scope="col" data-sort="number" class="is-sortable is-numeric">{{ section.settings.col_stock | default: 'Stock Count' | escape }}</th>
+                  {%- if section.settings.show_freight -%}
+                    <th scope="col" data-sort="text" class="is-sortable">{{ section.settings.col_freight | default: 'Freight' | escape }}</th>
+                  {%- endif -%}
+                </tr>
+              </thead>
+              <tbody data-stock-rows>
+        {%- endif -%}
+
+        {%- for product in paginate.items -%}
+          {%- liquid
+            assign freight = product.metafields[freight_ns][freight_key].value
+            assign product_title = product.title | escape
+          -%}
+          {%- for variant in product.variants -%}
+            {%- liquid
+              assign trade_price = variant.metafields[price_ns][price_key].value
+              if trade_price.amount
+                assign trade_price = trade_price.amount
+              endif
+              assign trade_price_num = trade_price | times: 1.0
+              assign weight_kg = variant.weight | divided_by: 1000.0
+              assign qty = variant.inventory_quantity
+              if variant.inventory_management == blank
+                assign qty_label = section.settings.untracked_label | default: 'Untracked'
+                assign qty_sort = 999999
+              else
+                assign qty_label = qty
+                assign qty_sort = qty
+              endif
+              assign variant_title = variant.title
+              if variant_title == 'Default Title'
+                assign variant_title = ''
+              endif
+            -%}
+            <tr
+              data-search="{{ product_title | downcase }} {{ variant_title | downcase | escape }} {{ variant.sku | downcase | escape }}"
+              data-qty="{{ qty_sort }}"
+              {% if variant.inventory_management != blank and qty <= 0 %}class="is-out-of-stock"{% endif %}
+            >
+              <td data-label="{{ section.settings.col_product | default: 'Product' | escape }}">
+                <a href="{{ variant.url }}" class="trade-stock-list__product">{{ product_title }}</a>
+              </td>
+              <td data-label="{{ section.settings.col_variant | default: 'Variant / Details' | escape }}">{{ variant_title | escape }}</td>
+              {%- if section.settings.show_sku -%}
+                <td data-label="{{ section.settings.col_sku | default: 'SKU' | escape }}">{{ variant.sku | escape }}</td>
+              {%- endif -%}
+              {%- if section.settings.show_price -%}
+                <td class="is-numeric" data-label="{{ section.settings.col_price | default: 'Trade Price' | escape }}" data-value="{{ trade_price_num }}">
+                  {%- if trade_price != blank -%}
+                    {{ trade_price_num | times: 100 | round | money_without_trailing_zeros }}
+                  {%- elsif section.settings.price_fallback -%}
+                    {{ variant.price | money_without_trailing_zeros }}
+                  {%- else -%}
+                    —
+                  {%- endif -%}
+                </td>
+              {%- endif -%}
+              {%- if section.settings.show_weight -%}
+                <td class="is-numeric" data-label="{{ section.settings.col_weight | default: 'Dead Weight (kg)' | escape }}" data-value="{{ weight_kg }}">
+                  {%- if variant.weight > 0 -%}{{ weight_kg | round: 2 }}{%- else -%}—{%- endif -%}
+                </td>
+              {%- endif -%}
+              <td class="is-numeric trade-stock-list__qty" data-label="{{ section.settings.col_stock | default: 'Stock Count' | escape }}" data-value="{{ qty_sort }}">
+                {{ qty_label }}
+              </td>
+              {%- if section.settings.show_freight -%}
+                <td data-label="{{ section.settings.col_freight | default: 'Freight' | escape }}">{{ freight | escape }}</td>
+              {%- endif -%}
+            </tr>
+          {%- endfor -%}
+        {%- endfor -%}
+
+        {%- if current_page == 1 -%}
+              </tbody>
+            </table>
+          </div>
+          {%- if paginate.pages > 1 -%}
+            <p class="trade-stock-list__loading paragraph" data-stock-loading>{{ section.settings.loading_label | default: 'Loading the rest of the range…' | escape }}</p>
+          {%- endif -%}
+          <p class="trade-stock-list__empty paragraph" data-stock-empty hidden>{{ section.settings.empty_label | default: 'No products match your search.' | escape }}</p>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </div>
+
+    {%- if request.design_mode and is_trade == false -%}
+      <p class="paragraph trade-stock-list__editor-note"><em>Theme editor preview: on the live site this table only shows to customers tagged “{{ trade_tag | escape }}”.</em></p>
+    {%- endif -%}
+
+  {%- else -%}
+    <div class="trade-stock-list__gate">
+      {%- if section.settings.gate_heading != blank -%}
+        <p class="h3">{{ section.settings.gate_heading | escape }}</p>
+      {%- endif -%}
+      {%- if section.settings.gate_text != blank -%}
+        <div class="paragraph">{{ section.settings.gate_text }}</div>
+      {%- endif -%}
+      {%- if customer == blank -%}
+        <a class="button" href="{{ login_url }}">{{ section.settings.gate_button_label | default: 'Log in' | escape }}</a>
+      {%- elsif section.settings.gate_apply_url != blank -%}
+        <a class="button" href="{{ section.settings.gate_apply_url }}">{{ section.settings.gate_apply_label | default: 'Apply for a trade account' | escape }}</a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+<style>
+  #section-{{ section.id }} .trade-stock-list__inner,
+  #section-{{ section.id }} .trade-stock-list__gate {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  #section-{{ section.id }} .trade-stock-list__gate {
+    align-items: flex-start;
+    max-width: 60ch;
+  }
+  #section-{{ section.id }} .trade-stock-list__heading { margin: 0; }
+  #section-{{ section.id }} .trade-stock-list__intro { max-width: 70ch; }
+
+  /* Toolbar */
+  #section-{{ section.id }} .trade-stock-list__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+  }
+  #section-{{ section.id }} .trade-stock-list__search { flex: 1 1 260px; max-width: 420px; }
+  #section-{{ section.id }} .trade-stock-list__search input {
+    width: 100%;
+    padding: 10px 14px;
+    border: var(--style-border-width-inputs, 1px) solid var(--color-input-border, var(--color-border));
+    border-radius: var(--style-border-radius-inputs, 0);
+    background: var(--color-input-background);
+    color: var(--color-input-text);
+    font-family: var(--font-body--family);
+    font-size: var(--font-paragraph--size, 0.875rem);
+  }
+  #section-{{ section.id }} .trade-stock-list__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: var(--font-paragraph--size, 0.875rem);
+  }
+  #section-{{ section.id }} .trade-stock-list__toggle input { accent-color: var(--color-foreground); }
+  #section-{{ section.id }} .trade-stock-list__count {
+    margin-inline-start: auto;
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  /* Table */
+  #section-{{ section.id }} .trade-stock-list__table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+  }
+  #section-{{ section.id }} .trade-stock-list__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-body--family);
+    font-size: var(--font-paragraph--size, 0.875rem);
+    line-height: 1.4;
+  }
+  #section-{{ section.id }} th,
+  #section-{{ section.id }} td {
+    padding: 14px 16px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--color-border);
+  }
+  #section-{{ section.id }} thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: {{ section.settings.header_background | default: 'var(--color-foreground)' }};
+    color: {{ section.settings.header_text_color | default: 'var(--color-background)' }};
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  #section-{{ section.id }} thead th small {
+    display: block;
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    opacity: 0.8;
+  }
+  #section-{{ section.id }} th.is-sortable { cursor: pointer; user-select: none; }
+  #section-{{ section.id }} th.is-sortable::after {
+    content: '';
+    display: inline-block;
+    width: 0.5em;
+    margin-inline-start: 0.4em;
+    opacity: 0.5;
+  }
+  #section-{{ section.id }} th.is-sorted-asc::after { content: '↑'; opacity: 1; }
+  #section-{{ section.id }} th.is-sorted-desc::after { content: '↓'; opacity: 1; }
+  #section-{{ section.id }} .is-numeric { text-align: right; font-variant-numeric: tabular-nums; }
+  #section-{{ section.id }} thead th.is-numeric { text-align: right; }
+  #section-{{ section.id }} tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--color-foreground) 4%, transparent);
+  }
+  #section-{{ section.id }} tbody tr:hover {
+    background: color-mix(in srgb, var(--color-foreground) 8%, transparent);
+  }
+  #section-{{ section.id }} tbody tr[hidden] { display: none; }
+  #section-{{ section.id }} .trade-stock-list__product {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  #section-{{ section.id }} .trade-stock-list__product:hover { text-decoration: underline; }
+  #section-{{ section.id }} tr.is-out-of-stock .trade-stock-list__qty { opacity: 0.45; }
+  #section-{{ section.id }} .trade-stock-list__loading,
+  #section-{{ section.id }} .trade-stock-list__empty {
+    font-size: 0.8125rem;
+    opacity: 0.7;
+  }
+  #section-{{ section.id }} .trade-stock-list__editor-note { opacity: 0.6; font-size: 0.8125rem; }
+
+  /* Mobile: stack each row into a card */
+  @media screen and (max-width: 768px) {
+    #section-{{ section.id }} .trade-stock-list__table-wrap { border: 0; }
+    #section-{{ section.id }} thead { display: none; }
+    #section-{{ section.id }} tbody tr {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    #section-{{ section.id }} tbody tr:nth-child(even) { background: transparent; }
+    #section-{{ section.id }} td {
+      display: block;
+      padding: 0;
+      border: 0;
+      text-align: left;
+    }
+    #section-{{ section.id }} td:first-child { grid-column: 1 / -1; }
+    #section-{{ section.id }} td::before {
+      content: attr(data-label);
+      display: block;
+      font-size: 0.625rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+    #section-{{ section.id }} td:first-child::before { display: none; }
+    #section-{{ section.id }} .trade-stock-list__count { margin-inline-start: 0; }
+  }
+</style>
+
+<script>
+  (function () {
+    var root = document.getElementById('section-{{ section.id }}');
+    if (!root) return;
+    var wrap = root.querySelector('.trade-stock-list__table-wrap');
+    var table = root.querySelector('[data-stock-table]');
+    if (!table) return;
+
+    var tbody = table.querySelector('[data-stock-rows]');
+    var search = root.querySelector('[data-stock-search]');
+    var hideEmpty = root.querySelector('[data-stock-hide-empty]');
+    var download = root.querySelector('[data-stock-download]');
+    var count = root.querySelector('[data-stock-count]');
+    var loading = root.querySelector('[data-stock-loading]');
+    var empty = root.querySelector('[data-stock-empty]');
+    var totalPages = parseInt(wrap.getAttribute('data-total-pages') || '1', 10);
+    var sectionId = {{ section.id | json }};
+
+    /* Pull in pages 2+ in the background so the whole range is on one page */
+    function loadRemainingPages() {
+      if (totalPages < 2) { if (loading) loading.hidden = true; return; }
+      var requests = [];
+      for (var p = 2; p <= totalPages; p++) {
+        var url = window.location.pathname + '?section_id=' + encodeURIComponent(sectionId) + '&page=' + p;
+        requests.push(fetch(url).then(function (r) { return r.text(); }));
+      }
+      Promise.all(requests).then(function (htmls) {
+        htmls.forEach(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          doc.querySelectorAll('tr').forEach(function (tr) { tbody.appendChild(tr); });
+        });
+        if (loading) loading.hidden = true;
+        applyFilters();
+      }).catch(function () { if (loading) loading.textContent = 'Some products could not be loaded — refresh to try again.'; });
+    }
+
+    /* Search + hide out of stock */
+    function applyFilters() {
+      var q = (search && search.value || '').trim().toLowerCase();
+      var hide = hideEmpty && hideEmpty.checked;
+      var shown = 0;
+      tbody.querySelectorAll('tr').forEach(function (tr) {
+        var matches = !q || (tr.getAttribute('data-search') || '').indexOf(q) !== -1;
+        var inStock = !hide || parseInt(tr.getAttribute('data-qty') || '0', 10) > 0;
+        var visible = matches && inStock;
+        tr.hidden = !visible;
+        if (visible) shown++;
+      });
+      if (count) count.textContent = shown + ' item' + (shown === 1 ? '' : 's');
+      if (empty) empty.hidden = shown !== 0;
+    }
+    if (search) search.addEventListener('input', applyFilters);
+    if (hideEmpty) hideEmpty.addEventListener('change', applyFilters);
+
+    /* Sortable columns */
+    var headers = table.querySelectorAll('th.is-sortable');
+    headers.forEach(function (th, index) {
+      th.addEventListener('click', function () {
+        var type = th.getAttribute('data-sort');
+        var asc = !th.classList.contains('is-sorted-asc');
+        headers.forEach(function (h) { h.classList.remove('is-sorted-asc', 'is-sorted-desc'); });
+        th.classList.add(asc ? 'is-sorted-asc' : 'is-sorted-desc');
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        rows.sort(function (a, b) {
+          var ca = a.children[index], cb = b.children[index];
+          var va, vb;
+          if (type === 'number') {
+            va = parseFloat(ca.getAttribute('data-value') || ca.textContent) || 0;
+            vb = parseFloat(cb.getAttribute('data-value') || cb.textContent) || 0;
+            return asc ? va - vb : vb - va;
+          }
+          va = ca.textContent.trim().toLowerCase();
+          vb = cb.textContent.trim().toLowerCase();
+          return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+      });
+    });
+
+    /* CSV download of whatever is currently visible */
+    if (download) {
+      download.addEventListener('click', function () {
+        var lines = [];
+        var head = Array.prototype.map.call(table.querySelectorAll('thead th'), function (th) {
+          return th.childNodes[0].textContent.trim();
+        });
+        lines.push(head.map(csvCell).join(','));
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+          if (tr.hidden) return;
+          lines.push(Array.prototype.map.call(tr.children, function (td) { return csvCell(td.textContent.trim()); }).join(','));
+        });
+        var blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'stock-list-' + new Date().toISOString().slice(0, 10) + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
+    function csvCell(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }
+
+    applyFilters();
+    loadRemainingPages();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Trade Stock List",
+  "tag": "section",
+  "class": "section-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Access"
+    },
+    {
+      "type": "text",
+      "id": "trade_tag",
+      "label": "Trade customer tag",
+      "default": "RETAILER",
+      "info": "Only logged-in customers with this tag see the table. Must match the tag on the customer record exactly."
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Stock List"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro text",
+      "default": "<p>Live stock levels across the full range. Click a product to view trade pricing and order.</p>"
+    },
+    {
+      "type": "text",
+      "id": "gst_note",
+      "label": "Price column note",
+      "default": "+ GST",
+      "info": "Shown under the trade price column heading."
+    },
+    {
+      "type": "header",
+      "content": "Data sources"
+    },
+    {
+      "type": "text",
+      "id": "price_metafield",
+      "label": "Trade price metafield",
+      "default": "trade.price",
+      "info": "Variant metafield in namespace.key format. Create it under Settings → Custom data → Variants as a Decimal (or Money) type, ex GST."
+    },
+    {
+      "type": "checkbox",
+      "id": "price_fallback",
+      "label": "Show retail price if trade price is empty",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "freight_metafield",
+      "label": "Freight tier metafield",
+      "default": "trade.freight_tier",
+      "info": "Product metafield in namespace.key format. Create it under Settings → Custom data → Products as Single line text (add PREMIUM, TLC, EXPRESS as preset choices)."
+    },
+    {
+      "type": "header",
+      "content": "Columns"
+    },
+    {
+      "type": "text",
+      "id": "col_product",
+      "label": "Product column label",
+      "default": "Product Name"
+    },
+    {
+      "type": "text",
+      "id": "col_variant",
+      "label": "Variant column label",
+      "default": "Variant / Details"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sku",
+      "label": "Show SKU column",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "col_sku",
+      "label": "SKU column label",
+      "default": "SKU"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "Show trade price column",
+      "default": false,
+      "info": "Off for now. Turn on once the trade.price metafield has been set up and filled in."
+    },
+    {
+      "type": "text",
+      "id": "col_price",
+      "label": "Trade price column label",
+      "default": "Trade Price"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_weight",
+      "label": "Show dead weight column",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "col_weight",
+      "label": "Dead weight column label",
+      "default": "Dead Weight (kg)"
+    },
+    {
+      "type": "text",
+      "id": "col_stock",
+      "label": "Stock column label",
+      "default": "Stock Count"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_freight",
+      "label": "Show freight column",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "col_freight",
+      "label": "Freight column label",
+      "default": "Freight"
+    },
+    {
+      "type": "header",
+      "content": "Toolbar"
+    },
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "Search placeholder",
+      "default": "Search products"
+    },
+    {
+      "type": "text",
+      "id": "hide_out_of_stock_label",
+      "label": "Hide out of stock label",
+      "default": "Hide out of stock"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_download",
+      "label": "Show CSV download button",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "download_label",
+      "label": "Download button label",
+      "default": "Download CSV"
+    },
+    {
+      "type": "text",
+      "id": "untracked_label",
+      "label": "Label for untracked inventory",
+      "default": "Untracked"
+    },
+    {
+      "type": "text",
+      "id": "loading_label",
+      "label": "Loading message",
+      "default": "Loading the rest of the range…"
+    },
+    {
+      "type": "text",
+      "id": "empty_label",
+      "label": "No results message",
+      "default": "No products match your search."
+    },
+    {
+      "type": "header",
+      "content": "Logged-out / non-trade message"
+    },
+    {
+      "type": "text",
+      "id": "gate_heading",
+      "label": "Heading",
+      "default": "Stockists only"
+    },
+    {
+      "type": "richtext",
+      "id": "gate_text",
+      "label": "Text",
+      "default": "<p>This page is for approved Gypset Cargo stockists. Please log in to your trade account to view live stock levels and pricing.</p>"
+    },
+    {
+      "type": "text",
+      "id": "gate_button_label",
+      "label": "Login button label",
+      "default": "Log in"
+    },
+    {
+      "type": "url",
+      "id": "gate_apply_url",
+      "label": "Apply for trade account link",
+      "info": "Shown to logged-in customers who aren't tagged as trade. Point this at the Trade Application page."
+    },
+    {
+      "type": "text",
+      "id": "gate_apply_label",
+      "label": "Apply button label",
+      "default": "Apply for a trade account"
+    },
+    {
+      "type": "header",
+      "content": "Style"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Colour scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "color",
+      "id": "header_background",
+      "label": "Table header background",
+      "info": "Leave empty to use the colour scheme's text colour."
+    },
+    {
+      "type": "color",
+      "id": "header_text_color",
+      "label": "Table header text",
+      "info": "Leave empty to use the colour scheme's background colour."
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Width",
+      "options": [
+        { "value": "page-width", "label": "Page" },
+        { "value": "full-width", "label": "Full" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 80
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trade Stock List",
+      "category": "Trade"
+    }
+  ]
+}
+{% endschema %}
