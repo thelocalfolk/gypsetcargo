@@ -40,7 +40,7 @@
 
   assign login_url = routes.storefront_login_url | default: routes.account_login_url
   assign price_source = section.settings.price_source | default: 'netwise'
-  assign nw_backend = section.settings.netwise_backend_url | default: 'https://nw-prod-a8e46749d6a0.herokuapp.com' | strip | remove_last: '/'
+  assign nw_backend = section.settings.netwise_backend_url | default: 'https://nw-prod-a8e46749d6a0.herokuapp.com' | strip
 -%}
 
 <div class="section-background color-{{ section.settings.color_scheme }}"></div>
@@ -403,8 +403,13 @@
       }
       Promise.all(requests).then(function (htmls) {
         htmls.forEach(function (html) {
-          var doc = new DOMParser().parseFromString(html, 'text/html');
-          doc.querySelectorAll('tr').forEach(function (tr) { tbody.appendChild(tr); });
+          /* Only keep the <tr>…</tr> rows and parse them inside a table,
+             otherwise the browser throws away rows that aren't in a table. */
+          var start = html.indexOf('<tr'), end = html.lastIndexOf('</tr>');
+          if (start === -1 || end === -1) return;
+          var tpl = document.createElement('template');
+          tpl.innerHTML = '<table><tbody>' + html.slice(start, end + 5) + '</tbody></table>';
+          tpl.content.querySelectorAll('tbody > tr').forEach(function (tr) { tbody.appendChild(tr); });
         });
         if (loading) loading.hidden = true;
         applyFilters();
@@ -484,7 +489,7 @@
       if (!inner || inner.getAttribute('data-price-source') !== 'netwise') return;
       var cells = tbody.querySelectorAll('[data-price-cell]');
       if (!cells.length) return;
-      var backend = inner.getAttribute('data-nw-backend');
+      var backend = (inner.getAttribute('data-nw-backend') || '').replace(/\/+$/, '');
       var shop = inner.getAttribute('data-nw-shop');
       var customerId = parseInt(inner.getAttribute('data-nw-customer') || '0', 10);
       var exGst = inner.getAttribute('data-ex-gst') === 'true';
