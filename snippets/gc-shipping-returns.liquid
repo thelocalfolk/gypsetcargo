@@ -1,0 +1,18 @@
+{%- comment -%}
+  Gypset Cargo: "Shipping & returns" accordion row content on product pages.
+  RETURNS WORDING IS A DRAFT: confirm with Jillian before this theme goes live.
+{%- endcomment -%}
+<div class="gc-accordion-copy">
+  <p><strong>Australia.</strong> Orders are packed in our northern NSW studio and sent with StarTrack. Your shipping cost is calculated at checkout from your postcode and the size of the carton. Some of our largest pieces are quoted separately; we will contact you before dispatch if that applies to your order.</p>
+  {%- if product.tags contains 'preorder' -%}
+    <p><strong>Pre-orders.</strong> This piece is on pre-order. It is paid in full at checkout and is expected to dispatch in late January 2027. If that date moves we will email you straight away, and you can choose to wait or take a full refund.</p>
+  {%- endif -%}
+  <p><strong>International.</strong> We ship selected pieces overseas. Freight is quoted per order, and import duties and taxes are paid by the customer on arrival.</p>
+  <p><strong>Returns.</strong> If your piece arrives damaged or faulty, contact us within 7 days of delivery with photos and we will repair, replace or refund it. Change-of-mind returns are accepted within 14 days on unused pieces in their original packaging; return shipping is paid by the customer.</p>
+  <p>
+    <a href="{{ shop.shipping_policy.url | default: '/policies/shipping-policy' }}">Shipping policy</a>
+    &nbsp;·&nbsp;
+    <a href="{{ shop.refund_policy.url | default: '/policies/refund-policy' }}">Returns policy</a>
+  </p>
+</div>
+<style>.gc-accordion-copy p { margin: 0 0 0.75rem; } .gc-accordion-copy a { text-decoration: underline; text-underline-offset: 2px; }</style>
