@@ -1,0 +1,21 @@
+{%- comment -%}
+  Gypset Cargo: "Sizing & hanging" accordion row on product pages.
+  Shows the product's own dimensions if the metafield custom.dimensions is filled in,
+  then general hanging guidance by product type.
+{%- endcomment -%}
+{%- assign gc_type = product.type | downcase -%}
+{%- assign gc_collections = product.collections | map: 'handle' | join: ',' -%}
+<div class="gc-accordion-copy">
+  {%- if product.metafields.custom.dimensions != blank -%}
+    <p><strong>Dimensions.</strong> {{ product.metafields.custom.dimensions }}</p>
+  {%- endif -%}
+  <p>All our measurements are in centimetres (cm). Height is measured from the top of the shade to the bottom, not including the cord or chain.</p>
+  {%- if gc_type contains 'sconce' or gc_collections contains 'wall-sconces' -%}
+    <p><strong>Placing a wall sconce.</strong> Mount the centre of the light at about 150 to 170 cm from the floor, around eye level. Either side of a mirror or bed, keep the pair 75 to 100 cm apart.</p>
+  {%- else -%}
+    <p><strong>Over a dining table or island.</strong> Hang the bottom of the shade 75 to 90 cm above the tabletop. Choose a diameter about half to two-thirds of the table's width.</p>
+    <p><strong>In a living room, hallway or entry.</strong> Leave at least 210 cm clearance from the floor to the bottom of the light where people walk underneath.</p>
+  {%- endif -%}
+  <p>Our pendants and chandeliers are hardwired and must be installed by a licensed electrician. Not sure which size suits your space? <a href="/pages/contact">Send us your room measurements</a> and we will help.</p>
+</div>
+<style>.gc-accordion-copy p { margin: 0 0 0.75rem; } .gc-accordion-copy a { text-decoration: underline; text-underline-offset: 2px; }</style>

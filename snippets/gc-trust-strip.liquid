@@ -1,0 +1,17 @@
+{%- comment -%}
+  Gypset Cargo: homepage trust strip. Rendered from a Custom Liquid section in templates/index.json.
+  Swap in press logos or a project quote here once supplied.
+{%- endcomment -%}
+<div class="gc-trust page-width">
+  <div class="gc-trust__item"><strong>Designed in Byron Bay</strong><span>by Jillian Middleton</span></div>
+  <div class="gc-trust__item"><strong>Handmade in Indonesia</strong><span>by our artisan makers, from natural materials</span></div>
+  <div class="gc-trust__item"><strong>Stocked Australia-wide</strong><span>by independent homewares retailers</span></div>
+  <div class="gc-trust__item"><strong>Help choosing a size</strong><span><a href="/pages/contact">Send us your room measurements</a></span></div>
+</div>
+<style>
+  .gc-trust { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; padding-block: 2rem; text-align: center; font-size: 0.875rem; line-height: 1.4; }
+  .gc-trust__item strong { display: block; font-weight: 500; letter-spacing: 0.02em; margin-bottom: 0.25rem; }
+  .gc-trust__item span { opacity: 0.75; }
+  .gc-trust a { text-decoration: underline; text-underline-offset: 2px; }
+  @media (max-width: 749px) { .gc-trust { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1rem; padding-inline: 16px; } }
+</style>

@@ -1,0 +1,13 @@
+{%- comment -%}
+  Gypset Cargo: photo and interior designer credits. Each line only shows when its metafield has a value.
+{%- endcomment -%}
+{%- assign gc_photo = product.metafields.custom.photo_credit.value -%}
+{%- assign gc_designer = product.metafields.custom.interior_designer_credit.value -%}
+{%- if gc_photo != blank or gc_designer != blank -%}
+  <p class="gc-credits">
+    {%- if gc_photo != blank -%}<em>Photography: {{ gc_photo }}</em>{%- endif -%}
+    {%- if gc_photo != blank and gc_designer != blank -%}<br>{%- endif -%}
+    {%- if gc_designer != blank -%}<em>Interior Designer: {{ gc_designer }}</em>{%- endif -%}
+  </p>
+  <style>.gc-credits { margin: 0; font-size: 0.625rem; line-height: 1.8; }</style>
+{%- endif -%}
