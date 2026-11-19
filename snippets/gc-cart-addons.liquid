@@ -1,0 +1,28 @@
+{%- comment -%}
+  Gypset Cargo: in the cart, offer the globes a light needs when they aren't in the cart yet.
+  Uses the same metafields as snippets/gc-globe-addon.liquid (custom.globe_product, custom.globe_quantity).
+{%- endcomment -%}
+{%- assign gc_in_cart = cart.items | map: 'product_id' -%}
+{%- capture gc_offers -%}
+  {%- assign gc_seen = '' -%}
+  {%- for item in cart.items -%}
+    {%- assign gc_globe = item.product.metafields.custom.globe_product.value -%}
+    {%- if gc_globe != blank and gc_globe.available -%}
+      {%- assign gc_key = gc_globe.id | append: ',' -%}
+      {%- unless gc_in_cart contains gc_globe.id or gc_seen contains gc_key -%}
+        {%- assign gc_seen = gc_seen | append: gc_key -%}
+        {%- assign gc_qty = item.product.metafields.custom.globe_quantity.value | default: 1 | times: item.quantity -%}
+        {%- assign gc_variant = gc_globe.selected_or_first_available_variant -%}
+        <div class="gc-addon gc-addon--globes">
+          <p><span class="gc-addon__title">Globes for your {{ item.product.title }}</span> {{ gc_qty }} &times; {{ item.product.metafields.custom.globe_note.value | default: gc_globe.title }}</p>
+          <button type="button" class="gc-addon__button" data-gc-add data-variant-id="{{ gc_variant.id }}" data-quantity="{{ gc_qty }}" data-added-text="Added">
+            <span data-gc-label>Add {{ gc_variant.price | times: gc_qty | money }}</span>
+          </button>
+        </div>
+      {%- endunless -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- if gc_offers != blank -%}
+  <div class="gc-cart-addons">{{ gc_offers }}</div>
+{%- endif -%}

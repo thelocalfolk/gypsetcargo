@@ -1,0 +1,59 @@
+{%- comment -%}
+  Gypset Cargo: "In real homes" row of customer, stylist and project photos, each linked to the light in it.
+  Hidden until at least one photo is added.
+{%- endcomment -%}
+{%- assign gc_photos = section.blocks | where: 'type', 'photo' -%}
+{%- assign gc_count = 0 -%}
+{%- for b in gc_photos -%}{%- if b.settings.image != blank -%}{%- assign gc_count = gc_count | plus: 1 -%}{%- endif -%}{%- endfor -%}
+{%- if gc_count > 0 or request.design_mode -%}
+  <div class="gc-section page-width color-{{ section.settings.color_scheme }}">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="gc-section__heading h3">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+    {%- if section.settings.intro != blank -%}
+      <div class="gc-section__intro">{{ section.settings.intro }}</div>
+    {%- endif -%}
+    <ul class="gc-tiles gc-tiles--homes">
+      {%- for block in section.blocks -%}
+        <li {{ block.shopify_attributes }}>
+          {%- assign p = block.settings.product -%}
+          <a class="gc-tile" href="{{ p.url | default: '#' }}">
+            {%- if block.settings.image != blank -%}
+              {{ block.settings.image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '300, 450, 600, 900', sizes: '(min-width: 750px) 25vw, 50vw' }}
+            {%- else -%}
+              <span class="gc-tile__placeholder"></span>
+            {%- endif -%}
+            <span class="gc-tile__caption">
+              {%- if p != blank -%}{{ p.title }}{%- endif -%}
+              {%- if block.settings.credit != blank -%} &middot; {{ block.settings.credit }}{%- endif -%}
+            </span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "In real homes (GC)",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "In real homes" },
+    { "type": "richtext", "id": "intro", "label": "Intro", "default": "<p>Gypset Cargo pieces in our customers' homes. Tag @gypsetcargo to be featured.</p>" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" }
+  ],
+  "blocks": [
+    {
+      "type": "photo",
+      "name": "Photo",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Photo" },
+        { "type": "product", "id": "product", "label": "Light in the photo" },
+        { "type": "text", "id": "credit", "label": "Credit", "info": "e.g. @username or the stylist. Only use photos you have permission for." }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [{ "name": "In real homes (GC)" }]
+}
+{% endschema %}

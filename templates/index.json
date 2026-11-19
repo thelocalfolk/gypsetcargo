@@ -2199,6 +2199,74 @@
       "settings": {
         "custom_liquid": "{% render 'gc-trust-strip' %}"
       }
+    },
+    "gc_shop_the_room": {
+      "type": "gc-shop-the-room",
+      "disabled": true,
+      "settings": {
+        "heading": "Shop the room",
+        "image": "shopify://shop_images/RETOUCHED_ThreeBirdsHouse14-Day39682House14-Entry_hires_JacquiTurk_2.jpg",
+        "caption": "Three Birds Renovations, House Fourteen",
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {},
+      "block_order": []
+    },
+    "gc_shop_by_room": {
+      "type": "gc-shop-by-room",
+      "disabled": true,
+      "settings": {
+        "heading": "Shop by room",
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "room_dining": {
+          "type": "room",
+          "settings": {
+            "label": "Dining"
+          }
+        },
+        "room_living": {
+          "type": "room",
+          "settings": {
+            "label": "Living"
+          }
+        },
+        "room_bedroom": {
+          "type": "room",
+          "settings": {
+            "label": "Bedroom"
+          }
+        },
+        "room_bathroom": {
+          "type": "room",
+          "settings": {
+            "label": "Bathroom"
+          }
+        },
+        "room_entry": {
+          "type": "room",
+          "settings": {
+            "label": "Entry"
+          }
+        }
+      },
+      "block_order": [
+        "room_dining",
+        "room_living",
+        "room_bedroom",
+        "room_bathroom",
+        "room_entry"
+      ]
+    },
+    "gc_real_homes": {
+      "type": "gc-real-homes",
+      "settings": {
+        "heading": "In real homes",
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {},
+      "block_order": []
     }
   },
   "order": [
@@ -2209,9 +2277,12 @@
     "section_faEKUf",
     "product_list_eaqBje",
     "collection_links_KwHnkr",
+    "gc_shop_by_room",
     "product_list_UwRqN4",
     "featured_product_mTUbKC",
     "media_with_content_nBXLVV",
+    "gc_shop_the_room",
+    "gc_real_homes",
     "section_eeDNjz",
     "section_e7t3FF",
     "hero_RttTUi"

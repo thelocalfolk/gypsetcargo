@@ -1,0 +1,33 @@
+{%- comment -%}
+  Gypset Cargo: "Not sure on size?" help request on product pages. Uses Shopify's contact form,
+  so requests arrive at the store's contact email like any other enquiry.
+  Edit the reply promise in gc_reply below.
+{%- endcomment -%}
+{%- assign gc_reply = 'We usually reply within one business day.' -%}
+<details class="gc-help">
+  <summary>Not sure on size? Ask us about your space</summary>
+  {%- form 'contact', id: 'gc-sizing-help', class: 'gc-help__form' -%}
+    {%- if form.posted_successfully? -%}
+      <p class="gc-help__note" role="status">Thanks, we've got it. {{ gc_reply }}</p>
+    {%- else -%}
+      {%- if form.errors -%}
+        <p class="gc-help__note" role="alert">{{ form.errors | default_errors }}</p>
+      {%- endif -%}
+      <input type="hidden" name="contact[Product]" value="{{ product.title | escape }}">
+      <input type="hidden" name="contact[Request]" value="Sizing help">
+      <div class="gc-help__row">
+        <label>Name <input type="text" name="contact[name]" autocomplete="name" required></label>
+        <label>Email <input type="email" name="contact[email]" autocomplete="email" required></label>
+      </div>
+      <div class="gc-help__row">
+        <label>Ceiling height <input type="text" name="contact[Ceiling height]" placeholder="e.g. 2.7 m"></label>
+        <label>Room or table size <input type="text" name="contact[Room size]" placeholder="e.g. table 2.2 m"></label>
+      </div>
+      <label>Anything else?
+        <textarea name="contact[body]" rows="3" placeholder="Where it's going, and we can reply by email for photos"></textarea>
+      </label>
+      <button type="submit" class="gc-addon__button">Send</button>
+      <p class="gc-help__note">{{ gc_reply }} Reply to our email with photos of the space if that helps.</p>
+    {%- endif -%}
+  {%- endform -%}
+</details>

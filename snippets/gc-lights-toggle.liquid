@@ -1,0 +1,9 @@
+{%- comment -%}
+  Gypset Cargo: lights on / lights off switch. One switch turns lit photos on across the whole site
+  (remembered in the shopper's browser). Behaviour in assets/gc-conversion.js.
+{%- endcomment -%}
+<button type="button" class="gc-lights-toggle" data-gc-lights-toggle aria-pressed="false">
+  <span><span class="gc-lights-toggle__state--off">Lights off</span><span class="gc-lights-toggle__state--on">Lights on</span></span>
+  <span class="gc-lights-toggle__switch" aria-hidden="true"></span>
+  <span class="visually-hidden">Show lit photos</span>
+</button>

@@ -1,0 +1,16 @@
+{%- comment -%}
+  Gypset Cargo: product page lit photo. Lays custom.lit_image over the first gallery image and floats
+  the lights switch on the gallery (moved there by assets/gc-conversion.js).
+{%- endcomment -%}
+{%- assign gc_lit = product.metafields.custom.lit_image.value -%}
+{%- if gc_lit != blank -%}
+  <div
+    hidden
+    data-gc-pdp-lit
+    data-src="{{ gc_lit | image_url: width: 1600 }}"
+    data-srcset="{{ gc_lit | image_url: width: 800 }} 800w, {{ gc_lit | image_url: width: 1200 }} 1200w, {{ gc_lit | image_url: width: 1600 }} 1600w, {{ gc_lit | image_url: width: 2400 }} 2400w"
+    data-alt="{{ product.title | append: ', lit' | escape }}"
+  >
+    {% render 'gc-lights-toggle' %}
+  </div>
+{%- endif -%}

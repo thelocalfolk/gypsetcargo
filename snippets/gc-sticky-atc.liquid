@@ -1,0 +1,15 @@
+{%- comment -%}
+  Gypset Cargo: mobile sticky add to cart. Appears once the real Add to cart button scrolls off screen
+  (phones only) and presses that same button, so pre-order notes and variants still apply.
+{%- endcomment -%}
+{%- if product.available -%}
+  <div class="gc-sticky-atc" data-gc-sticky-atc>
+    <div class="gc-sticky-atc__info">
+      <span class="gc-sticky-atc__title">{{ product.title }}</span>
+      <span>{{ product.selected_or_first_available_variant.price | money }}</span>
+    </div>
+    <button type="button" class="gc-sticky-atc__button" data-gc-sticky-button>
+      <span data-gc-label>Add to cart</span>
+    </button>
+  </div>
+{%- endif -%}

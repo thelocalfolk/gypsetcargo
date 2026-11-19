@@ -354,5 +354,6 @@
   {% elsif product == blank %}
     {{ slideshow_placeholder }}
   {%- endif -%}
+  {% render 'gc-lit-card', product: product %}
   {{ children }}
 </div>
