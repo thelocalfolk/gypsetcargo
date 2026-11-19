@@ -1,0 +1,23 @@
+{%- comment -%}
+  Gypset Cargo: wishlist page. Lists the pieces a shopper saved with the heart on product cards.
+  Saved in their browser, so no account is needed. Use with templates/page.wishlist.json.
+{%- endcomment -%}
+<div class="gc-wishlist page-width" data-gc-wishlist-page>
+  <h1 class="h2">{{ section.settings.heading }}</h1>
+  <ul class="gc-wishlist__grid" data-gc-wishlist-grid></ul>
+  <div data-gc-wishlist-empty hidden>
+    <p>{{ section.settings.empty_text }}</p>
+    <p><a href="{{ routes.all_products_collection_url }}">Browse the collection</a></p>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Wishlist (GC)",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Your wishlist" },
+    { "type": "text", "id": "empty_text", "label": "Empty message", "default": "Nothing saved yet. Tap the heart on any piece to save it here." }
+  ],
+  "presets": [{ "name": "Wishlist (GC)" }]
+}
+{% endschema %}

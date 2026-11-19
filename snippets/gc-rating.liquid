@@ -1,0 +1,16 @@
+{%- comment -%}
+  Gypset Cargo: star rating under the product title. Reads Shopify's standard review metafields
+  (reviews.rating, reviews.rating_count), which review apps such as Judge.me fill in.
+  Shows nothing until a product has at least one review.
+{%- endcomment -%}
+{%- assign gc_count = product.metafields.reviews.rating_count.value | default: 0 -%}
+{%- if gc_count > 0 -%}
+  {%- assign gc_r = product.metafields.reviews.rating.value -%}
+  {%- assign gc_rating = gc_r.rating | default: 0 -%}
+  {%- assign gc_scale = gc_r.scale_max | default: 5 -%}
+  {%- assign gc_pct = gc_rating | times: 100.0 | divided_by: gc_scale | round: 1 -%}
+  <a class="gc-rating" href="#reviews">
+    <span class="gc-rating__stars" style="--gc-pct: {{ gc_pct }}%;" aria-hidden="true"></span>
+    <span>{{ gc_rating | round: 1 }} ({{ gc_count }} {{ gc_count | pluralize: 'review', 'reviews' }})</span>
+  </a>
+{%- endif -%}

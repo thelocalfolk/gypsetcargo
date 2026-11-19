@@ -5,6 +5,10 @@
 >
   <head>
     {{ 'base.css' | asset_url | stylesheet_tag }}
+    {{ 'gc-conversion.css' | asset_url | stylesheet_tag }}
+    <script>
+      try { if (localStorage.getItem('gc-lights') === 'on') document.documentElement.setAttribute('data-gc-lights', 'on'); } catch (e) {}
+    </script>
 
     {%- if settings.favicon != blank -%}
       <link
@@ -25,6 +29,7 @@
     {%- render 'meta-tags' -%}
     {%- render 'fonts' -%}
     {%- render 'scripts' -%}
+    <script type="module" src="{{ 'gc-conversion.js' | asset_url }}"></script>
     {%- render 'theme-styles-variables' -%}
     {%- render 'color-schemes' -%}
 

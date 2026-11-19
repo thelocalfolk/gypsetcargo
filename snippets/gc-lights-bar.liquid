@@ -1,0 +1,16 @@
+{%- comment -%}
+  Gypset Cargo: bar above a collection grid with the lights switch.
+  Only shows when at least one product in the collection has a lit photo (custom.lit_image).
+{%- endcomment -%}
+{%- assign gc_has_lit = false -%}
+{%- for p in collection.products limit: 50 -%}
+  {%- if p.metafields.custom.lit_image != blank -%}
+    {%- assign gc_has_lit = true -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if gc_has_lit or request.design_mode -%}
+  <div class="gc-lights-bar page-width">
+    {% render 'gc-lights-toggle' %}
+  </div>
+{%- endif -%}

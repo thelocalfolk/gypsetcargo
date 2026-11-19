@@ -1,0 +1,22 @@
+{%- comment -%}
+  Gypset Cargo: extra product card badge, driven by real data only.
+  Order of priority: tag "best-seller" > only one left in stock > tag "ready-to-ship".
+  Sold-out and pre-order pieces get none (the theme's Sold out badge and the card's Pre-order label cover them).
+{%- endcomment -%}
+{%- unless product.available == false or product.tags contains 'preorder' -%}
+  {%- assign gc_badge = '' -%}
+  {%- assign gc_mod = '' -%}
+  {%- assign gc_variant = product.selected_or_first_available_variant -%}
+  {%- if product.tags contains 'best-seller' -%}
+    {%- assign gc_badge = 'Best seller' -%}
+  {%- elsif product.variants.size == 1 and gc_variant.inventory_management != blank and gc_variant.inventory_policy == 'deny' and gc_variant.inventory_quantity == 1 -%}
+    {%- assign gc_badge = 'Last one' -%}
+  {%- elsif product.tags contains 'ready-to-ship' -%}
+    {%- assign gc_badge = 'Ready to ship' -%}
+  {%- endif -%}
+  {%- if gc_badge != '' -%}
+    <div class="product-badges__badge product-badges__badge--rectangle gc-badge{% if gc_mod != '' %} gc-badge--{{ gc_mod }}{% endif %}">
+      {{ gc_badge }}
+    </div>
+  {%- endif -%}
+{%- endunless -%}

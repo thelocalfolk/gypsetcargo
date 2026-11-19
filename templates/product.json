@@ -373,19 +373,75 @@
                 "custom_liquid": "{% render 'gc-shipping-line' %}"
               },
               "blocks": {}
+            },
+            "gc_rating": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'gc-rating', product: closest.product %}"
+              },
+              "blocks": {}
+            },
+            "gc_globe_addon": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'gc-globe-addon', product: closest.product %}"
+              },
+              "blocks": {}
+            },
+            "gc_pair_addon": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'gc-pair-addon', product: closest.product %}"
+              },
+              "blocks": {}
+            },
+            "gc_sizing_help": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'gc-sizing-help', product: closest.product %}"
+              },
+              "blocks": {}
+            },
+            "gc_in_person": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'gc-in-person', product: closest.product %}"
+              },
+              "blocks": {}
+            },
+            "gc_wishlist": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'gc-wish-button', product: closest.product, inline: true %}"
+              },
+              "blocks": {}
+            },
+            "gc_lit_and_sticky": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "{% render 'gc-lights-pdp', product: closest.product %}{% render 'gc-sticky-atc', product: closest.product %}"
+              },
+              "blocks": {}
             }
           },
           "block_order": [
             "heading_m7KmQQ",
+            "gc_rating",
             "netwise_b2b_wholesale_discount_table_NnrNC6",
             "price_a7krng",
             "divider_HrJgFt",
             "variant_picker_R3rGDr",
             "buy_buttons_eYQEYi",
+            "gc_pair_addon",
+            "gc_globe_addon",
             "custom_liquid_PECX9J",
             "gc_shipping_line",
+            "gc_in_person",
+            "gc_sizing_help",
+            "gc_wishlist",
             "accordion_NKWPiW",
-            "text_mURjdE"
+            "text_mURjdE",
+            "gc_lit_and_sticky"
           ]
         }
       },

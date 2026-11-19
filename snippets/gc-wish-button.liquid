@@ -1,0 +1,18 @@
+{%- comment -%}
+  Gypset Cargo: save-to-wishlist heart. Saved in the shopper's browser; the list shows on /pages/wishlist.
+  Pass inline: true for the text version used on product pages.
+{%- endcomment -%}
+<button
+  type="button"
+  class="gc-wish{% if inline %} gc-wish--inline{% endif %}"
+  data-gc-wish
+  data-handle="{{ product.handle }}"
+  aria-pressed="false"
+  aria-label="Save to wishlist"
+>
+  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/></svg>
+  {%- if inline -%}
+    <span class="gc-wish__save">Save to wishlist</span>
+    <span class="gc-wish__saved">Saved to <a href="/pages/wishlist">your wishlist</a></span>
+  {%- endif -%}
+</button>

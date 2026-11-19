@@ -1,0 +1,21 @@
+{%- comment -%}
+  Gypset Cargo: lit photo laid over a product card image, shown when the shopper turns the lights on.
+  Driven by the product metafield custom.lit_image (single image). Cards without one stay as they are.
+  Also renders the wishlist heart. Rendered from snippets/card-gallery.liquid.
+{%- endcomment -%}
+{%- if product != blank -%}
+  {%- assign gc_lit = product.metafields.custom.lit_image.value -%}
+  {%- if gc_lit != blank -%}
+    {{
+      gc_lit
+      | image_url: width: 1200
+      | image_tag:
+        class: 'gc-lit-overlay',
+        loading: 'lazy',
+        sizes: '(min-width: 750px) 33vw, 50vw',
+        widths: '400, 600, 800, 1200',
+        alt: ''
+    }}
+  {%- endif -%}
+  {% render 'gc-wish-button', product: product %}
+{%- endif -%}

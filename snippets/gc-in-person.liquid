@@ -1,0 +1,12 @@
+{%- comment -%}
+  Gypset Cargo: "See it in person" line. Product metafield custom.stockists (single or multi-line text):
+  the stores that have this piece on display, e.g. "Lighting Collective, Byron Bay".
+  Links to /pages/stockists. Nothing shows without the metafield.
+{%- endcomment -%}
+{%- assign gc_stockists = product.metafields.custom.stockists.value -%}
+{%- if gc_stockists != blank -%}
+  <div class="gc-in-person">
+    <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>
+    <p>See it in person: {{ gc_stockists | newline_to_br | replace: '<br />', ', ' | strip_newlines }}. <a href="/pages/stockists">All stockists</a></p>
+  </div>
+{%- endif -%}

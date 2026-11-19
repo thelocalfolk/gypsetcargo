@@ -1,0 +1,32 @@
+{%- comment -%}
+  Gypset Cargo: "this light needs globes" prompt with a one-tap add.
+  Product metafields:
+    custom.globe_product  (product reference) the globe to sell with it, from the Globes collection
+    custom.globe_quantity (integer) how many it takes, defaults to 1
+    custom.globe_note     (single line text, optional) e.g. "E14 candle LED globes"
+  Without custom.globe_product nothing shows.
+{%- endcomment -%}
+{%- assign gc_globe = product.metafields.custom.globe_product.value -%}
+{%- if gc_globe != blank and gc_globe.available -%}
+  {%- assign gc_qty = product.metafields.custom.globe_quantity.value | default: 1 -%}
+  {%- assign gc_variant = gc_globe.selected_or_first_available_variant -%}
+  {%- assign gc_total = gc_variant.price | times: gc_qty -%}
+  {%- assign gc_note = product.metafields.custom.globe_note.value | default: gc_globe.title -%}
+  <div class="gc-addon gc-addon--globes">
+    <p>
+      <span class="gc-addon__title">Globes not included.</span>
+      This light takes {{ gc_qty }} &times; {{ gc_note }}.
+      <a href="{{ gc_globe.url }}">Globe details</a>
+    </p>
+    <button
+      type="button"
+      class="gc-addon__button"
+      data-gc-add
+      data-variant-id="{{ gc_variant.id }}"
+      data-quantity="{{ gc_qty }}"
+      data-added-text="Globes added"
+    >
+      <span data-gc-label>Add {{ gc_qty }} for {{ gc_total | money }}</span>
+    </button>
+  </div>
+{%- endif -%}
