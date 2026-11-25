@@ -740,10 +740,64 @@
         "padding-block-start": 48,
         "padding-block-end": 48
       }
+    },
+    "gc_product_story": {
+      "type": "gc-product-story",
+      "settings": {
+        "show_description": true,
+        "first_image": 2
+      }
+    },
+    "gc_size_band": {
+      "type": "gc-size-band",
+      "settings": {}
+    },
+    "gc_faq": {
+      "type": "gc-faq",
+      "blocks": {
+        "q0": {
+          "type": "question",
+          "settings": {
+            "question": "When will my pre-order ship?",
+            "answer": "<p>Pre-orders from the new collection dispatch late January 2027. We'll email you tracking as soon as yours is on its way.</p>"
+          }
+        },
+        "q1": {
+          "type": "question",
+          "settings": {
+            "question": "Which globe should I use?",
+            "answer": "<p>Each piece lists its fitting in the description. Our LED spherical globes can be added right above the Add to cart button.</p>"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "question": "How do I care for natural materials?",
+            "answer": "<p>Dust gently with a soft dry brush or cloth, and keep pieces out of damp areas and direct weather. Natural fibres vary a little from piece to piece, which is part of their character.</p>"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "question": "Shipping and returns",
+            "answer": "<p>See our <a href=\"/policies/shipping-policy\">shipping policy</a> and <a href=\"/policies/refund-policy\">returns policy</a>.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "q0",
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "settings": {}
     }
   },
   "order": [
     "main",
+    "gc_product_story",
+    "gc_size_band",
+    "gc_faq",
     "product_recommendations_qnzPkn"
   ]
 }

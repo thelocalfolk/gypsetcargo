@@ -1,0 +1,42 @@
+{%- comment -%}
+  Gypset Cargo: product story (Double style). The product description in large type on the panel colour,
+  then an editorial collage of the product's photos (images 2-5 by default) and one wide shot.
+{%- endcomment -%}
+{%- liquid
+  assign start = section.settings.first_image | minus: 1
+  assign shots = product.media | where: 'media_type', 'image'
+-%}
+<div class="gc-rd">
+  {%- if section.settings.show_description and product.description != blank -%}
+    <div class="gc-story">
+      <div class="page-width"><div class="gc-story__text rte">{{ product.description }}</div></div>
+    </div>
+  {%- endif -%}
+  {%- if shots.size > start -%}
+    <div class="page-width">
+      <div class="gc-collage">
+        {%- for m in shots offset: start limit: 3 -%}
+          {%- assign alt = m.alt | default: product.title -%}
+          <figure>{{ m | image_url: width: 1400 | image_tag: loading: 'lazy', sizes: '(min-width: 750px) 40vw, 50vw', widths: '400, 700, 1000, 1400', alt: alt }}</figure>
+        {%- endfor -%}
+      </div>
+      {%- assign wide_index = start | plus: 3 -%}
+      {%- for m in shots offset: wide_index limit: 1 -%}
+        {%- assign alt = m.alt | default: product.title -%}
+        <div class="gc-collage__wide">{{ m | image_url: width: 2400 | image_tag: loading: 'lazy', sizes: '100vw', widths: '800, 1400, 2000, 2400', alt: alt }}</div>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "GC product story",
+  "enabled_on": { "templates": ["product"] },
+  "settings": [
+    { "type": "checkbox", "id": "show_description", "label": "Show description in large type", "default": true },
+    { "type": "range", "id": "first_image", "label": "Collage starts at photo", "min": 1, "max": 6, "step": 1, "default": 2 }
+  ],
+  "presets": [{ "name": "GC product story" }]
+}
+{% endschema %}

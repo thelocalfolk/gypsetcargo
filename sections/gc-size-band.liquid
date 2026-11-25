@@ -1,0 +1,42 @@
+{%- comment -%}
+  Gypset Cargo: full-width "Not sure on size?" request (mockup section 7). Uses Shopify's contact form,
+  so requests arrive at the store's contact email. Product title is sent with it on product pages.
+{%- endcomment -%}
+<div class="gc-rd page-width" id="gc-size">
+  <div class="gc-sizeband">
+    <div class="gc-sizeband__intro">
+      {%- if section.settings.eyebrow != blank -%}<p class="gc-eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <h2 class="gc-rd__heading h2">{{ section.settings.heading }}</h2>
+      <div>{{ section.settings.text }}</div>
+    </div>
+    {%- form 'contact', id: 'gc-size-band', class: 'gc-sizeband__form' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="gc-full" role="status">{{ section.settings.success }}</p>
+      {%- else -%}
+        {%- if form.errors -%}<p class="gc-full" role="alert">{{ form.errors | default_errors }}</p>{%- endif -%}
+        {%- if product -%}<input type="hidden" name="contact[Product]" value="{{ product.title | escape }}">{%- endif -%}
+        <input type="hidden" name="contact[Request]" value="Sizing help">
+        <label>Name<input type="text" name="contact[name]" autocomplete="name" required></label>
+        <label>Email<input type="email" name="contact[email]" autocomplete="email" required></label>
+        <label>Table or bench width<input type="text" name="contact[Table width]" placeholder="e.g. 2.2 m"></label>
+        <label>Ceiling height<input type="text" name="contact[Ceiling height]" placeholder="e.g. 2.7 m"></label>
+        <label class="gc-full">Anything else?<textarea name="contact[body]" rows="3" placeholder="We can reply by email for photos of the room"></textarea></label>
+        <button type="submit">{{ section.settings.button_label }}</button>
+      {%- endif -%}
+    {%- endform -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "GC size help",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Lighting help" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Not sure on size?" },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Tell us about your space and we'll come back with the right size, how high to hang it, and whether one or two will work best.</p>" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Send" },
+    { "type": "text", "id": "success", "label": "Thank you message", "default": "Thanks, we've got it. We usually reply within one business day." }
+  ],
+  "presets": [{ "name": "GC size help" }]
+}
+{% endschema %}

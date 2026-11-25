@@ -1,0 +1,41 @@
+{%- comment -%}
+  Gypset Cargo: help strip under the header (from the Double homepage). One block per link, with an icon.
+{%- endcomment -%}
+<nav class="gc-rd gc-help-strip color-{{ section.settings.color_scheme }}" aria-label="{{ section.settings.aria_label | escape }}">
+  {%- for block in section.blocks -%}
+    <a href="{{ block.settings.link | default: '#' }}" {{ block.shopify_attributes }}>
+      {%- case block.settings.icon -%}
+        {%- when 'size' -%}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="6" width="18" height="12"/><path d="M7 6v4M11 6v3M15 6v4M19 6v3"/></svg>
+        {%- when 'pin' -%}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        {%- when 'truck' -%}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 7h12v9H2zM14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>
+        {%- else -%}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="7" width="18" height="13"/><path d="M9 7V4h6v3M3 12h18"/></svg>
+      {%- endcase -%}
+      <span>{{ block.settings.label }}</span>
+    </a>
+  {%- endfor -%}
+</nav>
+
+{% schema %}
+{
+  "name": "GC help strip",
+  "settings": [
+    { "type": "text", "id": "aria_label", "label": "Accessible name", "default": "Ways we can help" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Colour scheme", "default": "scheme-1" }
+  ],
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Link",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Find a stockist" },
+        { "type": "url", "id": "link", "label": "Link" },
+        { "type": "select", "id": "icon", "label": "Icon", "default": "pin", "options": [
+          { "value": "size", "label": "Ruler" }, { "value": "pin", "label": "Map pin" },
+          { "value": "truck", "label": "Delivery" }, { "value": "trade", "label": "Briefcase" } ] }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [{ "name": "GC help strip" }]
+}
+{% endschema %}
