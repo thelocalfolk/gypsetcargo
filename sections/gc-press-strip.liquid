@@ -1,0 +1,48 @@
+{%- comment -%}
+  Gypset Cargo: "As featured in" press strip. Logos are burgundy-tinted PNGs in assets/gc-press-*.png
+  (originals in the Brain folder, assets/press-logos). Each block names its asset file and display height,
+  or takes an uploaded image instead.
+{%- endcomment -%}
+<div class="gc-rd page-width">
+  <section class="gc-press" aria-label="{{ section.settings.heading | escape }}">
+    {%- if section.settings.heading != blank -%}<p class="gc-eyebrow">{{ section.settings.heading }}</p>{%- endif -%}
+    <ul class="gc-press__logos">
+      {%- for block in section.blocks -%}
+        {%- assign h = block.settings.height -%}
+        <li {{ block.shopify_attributes }}>
+          {%- if block.settings.image != blank -%}
+            {%- assign style = 'height:' | append: h | append: 'px;width:auto' -%}
+            {{ block.settings.image | image_url: height: 160 | image_tag: alt: block.settings.name, height: h, style: style, loading: 'lazy' }}
+          {%- elsif block.settings.asset != blank -%}
+            <img src="{{ block.settings.asset | asset_url }}" alt="{{ block.settings.name | escape }}" width="{{ block.settings.width }}" height="{{ h }}" style="height:{{ h }}px;width:{{ block.settings.width }}px" loading="lazy">
+          {%- else -%}
+            <span>{{ block.settings.name }}</span>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ul>
+  </section>
+</div>
+
+{% schema %}
+{
+  "name": "GC press strip",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "As featured in" }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        { "type": "text", "id": "name", "label": "Publication", "default": "Publication" },
+        { "type": "text", "id": "asset", "label": "Theme asset file", "info": "e.g. gc-press-belle.png" },
+        { "type": "image_picker", "id": "image", "label": "Or upload a logo" },
+        { "type": "range", "id": "height", "label": "Height", "min": 12, "max": 60, "step": 1, "unit": "px", "default": 28 },
+        { "type": "range", "id": "width", "label": "Width (for theme asset logos)", "min": 30, "max": 300, "step": 1, "unit": "px", "default": 100 }
+      ]
+    }
+  ],
+  "presets": [{ "name": "GC press strip" }]
+}
+{% endschema %}

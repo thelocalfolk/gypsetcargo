@@ -1,0 +1,42 @@
+{%- comment -%}
+  Gypset Cargo: FAQ accordion (mockup section 10). One block per question.
+{%- endcomment -%}
+<div class="gc-rd page-width">
+  <div class="gc-faq">
+    <div class="gc-faq__intro">
+      {%- if section.settings.eyebrow != blank -%}<p class="gc-eyebrow">{{ section.settings.eyebrow }}</p>{%- endif -%}
+      <h2 class="gc-rd__heading h2">{{ section.settings.heading }}</h2>
+      {%- if section.settings.text != blank -%}<div>{{ section.settings.text }}</div>{%- endif -%}
+    </div>
+    <div class="gc-faq__list">
+      {%- for block in section.blocks -%}
+        <details {{ block.shopify_attributes }}>
+          <summary>{{ block.settings.question }}</summary>
+          <div class="gc-faq__answer rte">{{ block.settings.answer }}</div>
+        </details>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "GC FAQ",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Good to know" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Questions" },
+    { "type": "richtext", "id": "text", "label": "Text", "default": "<p>Can't see yours? <a href=\"/pages/contact\">Ask us</a>.</p>" }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "Question" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "default": "<p>Answer</p>" }
+      ]
+    }
+  ],
+  "presets": [{ "name": "GC FAQ" }]
+}
+{% endschema %}

@@ -646,7 +646,7 @@
                 "border": "none",
                 "border_width": 1,
                 "border_opacity": 100,
-                "border_radius": 0,
+                "border_radius": 12,
                 "padding-block-start": 0,
                 "padding-block-end": 0,
                 "padding-inline-start": 0,
@@ -846,11 +846,18 @@
                 "group_RBBGUm",
                 "group_Jz8ArU"
               ]
+            },
+            "gc_card_button": {
+              "type": "gc-card-button",
+              "settings": {
+                "product": "{{ closest.product }}"
+              }
             }
           },
           "block_order": [
             "product_card_gallery_tKVeXM",
-            "group_ffEfMn"
+            "group_ffEfMn",
+            "gc_card_button"
           ]
         }
       },
@@ -1020,7 +1027,7 @@
                 "border": "none",
                 "border_width": 1,
                 "border_opacity": 100,
-                "border_radius": 0,
+                "border_radius": 12,
                 "padding-block-start": 0,
                 "padding-block-end": 0,
                 "padding-inline-start": 0,
@@ -1220,11 +1227,18 @@
                 "group_KJDaTQ",
                 "group_cPyTRf"
               ]
+            },
+            "gc_card_button": {
+              "type": "gc-card-button",
+              "settings": {
+                "product": "{{ closest.product }}"
+              }
             }
           },
           "block_order": [
             "product_card_gallery_4y78ah",
-            "group_JHtHYm"
+            "group_JHtHYm",
+            "gc_card_button"
           ]
         }
       },
@@ -2159,7 +2173,8 @@
         "gradient_direction": "to top",
         "padding-block-start": 48,
         "padding-block-end": 48
-      }
+      },
+      "disabled": true
     },
     "hero_RttTUi": {
       "type": "hero",
@@ -2198,7 +2213,8 @@
       "type": "custom-liquid",
       "settings": {
         "custom_liquid": "{% render 'gc-trust-strip' %}"
-      }
+      },
+      "disabled": true
     },
     "gc_shop_the_room": {
       "type": "gc-shop-the-room",
@@ -2266,24 +2282,235 @@
         "color_scheme": "scheme-1"
       },
       "blocks": {},
-      "block_order": []
+      "block_order": [],
+      "disabled": true
+    },
+    "gc_help_strip": {
+      "type": "gc-help-strip",
+      "blocks": {
+        "size": {
+          "type": "link",
+          "settings": {
+            "label": "Get the size right",
+            "link": "/pages/contact",
+            "icon": "size"
+          }
+        },
+        "stockist": {
+          "type": "link",
+          "settings": {
+            "label": "Find a stockist",
+            "link": "/pages/stockists",
+            "icon": "pin"
+          }
+        },
+        "ship": {
+          "type": "link",
+          "settings": {
+            "label": "Shipping and returns",
+            "link": "/policies/shipping-policy",
+            "icon": "truck"
+          }
+        },
+        "trade": {
+          "type": "link",
+          "settings": {
+            "label": "Trade accounts",
+            "link": "/pages/trade-application",
+            "icon": "trade"
+          }
+        }
+      },
+      "block_order": [
+        "size",
+        "stockist",
+        "ship",
+        "trade"
+      ],
+      "settings": {
+        "aria_label": "Ways we can help",
+        "color_scheme": "scheme-1"
+      }
+    },
+    "gc_press_strip": {
+      "type": "gc-press-strip",
+      "blocks": {
+        "logo_0": {
+          "type": "logo",
+          "settings": {
+            "name": "Three Birds Renovations",
+            "asset": "gc-press-three-birds.png",
+            "height": 40,
+            "width": 126
+          }
+        },
+        "logo_1": {
+          "type": "logo",
+          "settings": {
+            "name": "Vogue Living",
+            "asset": "gc-press-vogue-living.png",
+            "height": 28,
+            "width": 106
+          }
+        },
+        "logo_2": {
+          "type": "logo",
+          "settings": {
+            "name": "Belle",
+            "asset": "gc-press-belle.png",
+            "height": 35,
+            "width": 88
+          }
+        },
+        "logo_3": {
+          "type": "logo",
+          "settings": {
+            "name": "Inside Out",
+            "asset": "gc-press-inside-out.png",
+            "height": 30,
+            "width": 100
+          }
+        },
+        "logo_4": {
+          "type": "logo",
+          "settings": {
+            "name": "Home Beautiful",
+            "asset": "gc-press-home-beautiful.png",
+            "height": 38,
+            "width": 68
+          }
+        },
+        "logo_5": {
+          "type": "logo",
+          "settings": {
+            "name": "Country Style",
+            "asset": "gc-press-country-style.png",
+            "height": 23,
+            "width": 131
+          }
+        },
+        "logo_6": {
+          "type": "logo",
+          "settings": {
+            "name": "Real Living",
+            "asset": "gc-press-real-living.png",
+            "height": 27,
+            "width": 113
+          }
+        },
+        "logo_7": {
+          "type": "logo",
+          "settings": {
+            "name": "Homes to Love",
+            "asset": "gc-press-homes-to-love.png",
+            "height": 33,
+            "width": 93
+          }
+        },
+        "logo_8": {
+          "type": "logo",
+          "settings": {
+            "name": "The Design Files",
+            "asset": "gc-press-the-design-files.png",
+            "height": 22,
+            "width": 134
+          }
+        },
+        "logo_9": {
+          "type": "logo",
+          "settings": {
+            "name": "The Local Project",
+            "asset": "gc-press-the-local-project.png",
+            "height": 25,
+            "width": 118
+          }
+        }
+      },
+      "block_order": [
+        "logo_0",
+        "logo_1",
+        "logo_2",
+        "logo_3",
+        "logo_4",
+        "logo_5",
+        "logo_6",
+        "logo_7",
+        "logo_8",
+        "logo_9"
+      ],
+      "settings": {
+        "heading": "As featured in"
+      }
+    },
+    "gc_campaign_tiles": {
+      "type": "gc-campaign-tiles",
+      "blocks": {
+        "t1": {
+          "type": "tile",
+          "settings": {
+            "image": "shopify://shop_images/Napoli.jpg",
+            "title": "The new collection",
+            "cta": "Shop now",
+            "link": "shopify://collections/arriving-soon"
+          }
+        },
+        "t2": {
+          "type": "tile",
+          "settings": {
+            "image": "shopify://shop_images/RETOUCHED_ThreeBirdsHouse14-Day39682House14-Entry_hires_JacquiTurk_2.jpg",
+            "title": "As seen with Three Birds",
+            "cta": "See the project",
+            "link": "shopify://blogs/projects/three-birds-renovations-house-fourteen"
+          }
+        },
+        "t3": {
+          "type": "tile",
+          "settings": {
+            "image": "shopify://shop_images/Hero.png",
+            "title": "The sale edit",
+            "cta": "Shop sale",
+            "link": "shopify://collections/sale-items"
+          }
+        }
+      },
+      "block_order": [
+        "t1",
+        "t2",
+        "t3"
+      ],
+      "settings": {}
+    },
+    "gc_lighting_help": {
+      "type": "gc-lighting-help",
+      "settings": {
+        "image": "shopify://shop_images/Napoli2.jpg",
+        "eyebrow": "Lighting help",
+        "heading": "Not sure what will work?",
+        "text": "<p>Send us a photo of your space, your ceiling height and your table size, and we'll suggest the right pieces and how high to hang them.</p>",
+        "button_label": "Send us your space",
+        "button_link": "/pages/contact"
+      }
     }
   },
   "order": [
     "slideshow_q9Jba7",
+    "gc_help_strip",
+    "gc_press_strip",
+    "gc_campaign_tiles",
+    "product_list_eaqBje",
+    "collection_links_KwHnkr",
+    "product_list_UwRqN4",
+    "section_eeDNjz",
+    "gc_lighting_help",
+    "media_with_content_nBXLVV",
     "gc_trust_strip",
     "hero_MVUtj6",
     "hero_9B8RPH",
     "section_faEKUf",
-    "product_list_eaqBje",
-    "collection_links_KwHnkr",
     "gc_shop_by_room",
-    "product_list_UwRqN4",
     "featured_product_mTUbKC",
-    "media_with_content_nBXLVV",
     "gc_shop_the_room",
     "gc_real_homes",
-    "section_eeDNjz",
     "section_e7t3FF",
     "hero_RttTUi"
   ]

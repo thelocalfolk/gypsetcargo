@@ -1,0 +1,30 @@
+{%- comment -%}
+  Gypset Cargo: full-width button on product cards. Single-variant products add straight to the cart
+  ("Pre-order" when tagged preorder); products with options link to the product page to choose.
+{%- endcomment -%}
+{%- assign p = block.settings.product | default: closest.product -%}
+{%- if p != blank -%}
+  {%- assign is_pre = false -%}
+  {%- if p.tags contains 'preorder' -%}{%- assign is_pre = true -%}{%- endif -%}
+  <div class="gc-card-btn" {{ block.shopify_attributes }}>
+    {%- if p.has_only_default_variant or p.variants.size == 1 -%}
+      {%- form 'product', p, data-type: 'add-to-cart-form' -%}
+        <input type="hidden" name="id" value="{{ p.selected_or_first_available_variant.id }}">
+        <button type="submit" name="add" {% unless p.available %}disabled{% endunless %}>
+          {%- if p.available == false -%}Sold out{%- elsif is_pre -%}Pre-order{%- else -%}Add to cart{%- endif -%}
+        </button>
+      {%- endform -%}
+    {%- else -%}
+      <a href="{{ p.url }}">{% if is_pre %}Pre-order{% else %}Choose options{% endif %}</a>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "GC card button",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" }
+  ]
+}
+{% endschema %}

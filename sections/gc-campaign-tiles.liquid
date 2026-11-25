@@ -1,0 +1,38 @@
+{%- comment -%}
+  Gypset Cargo: three campaign tiles (from the Double homepage). Photo, title and a "Shop now" pill.
+{%- endcomment -%}
+<div class="gc-rd page-width">
+  <div class="gc-tiles3">
+    {%- for block in section.blocks -%}
+      <a class="gc-tile" href="{{ block.settings.link | default: '#' }}" {{ block.shopify_attributes }}>
+        {%- if block.settings.image != blank -%}
+          {{ block.settings.image | image_url: width: 1000 | image_tag: loading: 'lazy', sizes: '(min-width: 750px) 33vw, 80vw', widths: '400, 600, 800, 1000', alt: block.settings.image.alt }}
+        {%- endif -%}
+        <span class="gc-tile__body">
+          <span class="gc-tile__title h3">{{ block.settings.title }}</span>
+          <span class="gc-tile__cta">{{ block.settings.cta }}</span>
+        </span>
+      </a>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "GC campaign tiles",
+  "blocks": [
+    {
+      "type": "tile",
+      "name": "Tile",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "title", "label": "Title", "default": "The new collection" },
+        { "type": "text", "id": "cta", "label": "Button label", "default": "Shop now" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "max_blocks": 3,
+  "presets": [{ "name": "GC campaign tiles" }]
+}
+{% endschema %}

@@ -6,6 +6,7 @@
   <head>
     {{ 'base.css' | asset_url | stylesheet_tag }}
     {{ 'gc-conversion.css' | asset_url | stylesheet_tag }}
+    {{ 'gc-redesign.css' | asset_url | stylesheet_tag }}
     <script>
       try { if (localStorage.getItem('gc-lights') === 'on') document.documentElement.setAttribute('data-gc-lights', 'on'); } catch (e) {}
     </script>
